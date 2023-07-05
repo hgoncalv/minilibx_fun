@@ -54,8 +54,8 @@ int main(void)
     vars.win = mlx_new_window(vars.mlx, WINDOW_WIDTH, WINDOW_HEIGHT, "Wolfenstein Replica - Step 3");
 
     // Event loop to continuously update the window
-    mlx_loop_hook(vars.mlx, draw_frame, &vars);
-
+    // mlx_loop_hook(vars.mlx, draw_frame, &vars);
+    draw_frame(&vars);
     // Event loop to keep the window open
     mlx_loop(vars.mlx);
 

@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = #-Wall -Wextra -Werror
-LDFLAGS = -L./minilibx-linux -lmlx_Linux -lX11 -lXext -lm
+LDFLAGS = -L./minilibx-linux -lmlx_Linux -lX11 -lXext -lm   -lmlx -L/usr/include/../lib -lXext -lX11 -lm 
 
 SRC_DIR = src
 SRCS := $(wildcard $(SRC_DIR)/*.c)

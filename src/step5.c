@@ -7,14 +7,21 @@
 #include <unistd.h>
 #include <math.h>
 
-#define screenWidth 640
-#define screenHeight 480
+#define screenWidth 1024
+#define screenHeight 768
 #define mapWidth 24
 #define mapHeight 24
+
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 600
+#define RECTANGLE_WIDTH 200
+#define RECTANGLE_HEIGHT 150
 
 #define KEY_ESC 0xFF1B // ESC key
 #define KEY_LEFT 0xFF51 // Left arrow key
 #define KEY_RIGHT 0xFF53 // Right arrow key
+#define KEY_UP 0xFF52    // Up arrow key
+#define KEY_DOWN 0xFF54  // Down arrow key
 #define KEY_W 0x0077    // W key
 #define KEY_A 0x0061    // A key
 #define KEY_S 0x0073    // S key
@@ -44,7 +51,7 @@ typedef struct s_cast_vars {
 
 typedef struct s_vars {
     void *mlx;
-    void *mlx_win;
+    void *win;
     double posX;
     double posY;
     double dirX;
@@ -53,37 +60,81 @@ typedef struct s_vars {
     double planeY;
     t_cast_vars *cast_vars;
     void *buffer_img;
+    int *buffer_data;
     bool update_render;
+    int bits_per_pixel;
+    int size_line;
+    int endian;
+    // int screenWidth;
+    // int screenHeight;
 } t_vars;
 
 
+void draw_rectangle(void *mlx, void *win, int x, int y, int width, int height);
+int draw_frame(void *param);
 
-int worldMap[24][24] = {
-    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
+
+int worldMap[mapWidth][mapHeight]=
+{
+  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,2,2,2,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1},
+  {1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,3,0,0,0,3,0,0,0,1},
+  {1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,2,2,0,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,0,4,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,0,0,0,0,5,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,0,4,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,0,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
+
+void draw_line(int *buffer_data, int x0, int y0, int x1, int y1, int color)
+{
+    int dx = abs(x1 - x0);
+    int dy = abs(y1 - y0);
+    int sx = (x0 < x1) ? 1 : -1;
+    int sy = (y0 < y1) ? 1 : -1;
+    int err = dx - dy;
+
+    while (1)
+    {
+        // Calculate the index of the pixel in the buffer image data
+        int pixel_index = y0 * screenWidth + x0;
+        // Set the pixel color directly in the buffer image data
+        buffer_data[pixel_index] = color;
+
+        if (x0 == x1 && y0 == y1)
+            break;
+
+        int e2 = 2 * err;
+        if (e2 > -dy)
+        {
+            err -= dy;
+            x0 += sx;
+        }
+        if (e2 < dx)
+        {
+            err += dx;
+            y0 += sy;
+        }
+    }
+}
+
+
 
 void ray_calculations(t_vars *vars)
 {
@@ -155,9 +206,12 @@ void perform_dda(t_vars *vars)
 
 int performRaycasting(t_vars *vars)
 {
-    
-    // Clear the previous frame
-    mlx_clear_window(vars->mlx, vars->mlx_win);
+    if (vars->update_render == 0)
+        return 0;
+
+    // Create a buffer image to store the rendered frame
+    void *buffer_img = mlx_new_image(vars->mlx, screenWidth, screenHeight);
+    int *buffer_data = (int *)mlx_get_data_addr(buffer_img, &(vars->bits_per_pixel), &(vars->size_line), &(vars->endian));
 
     // Raycasting and rendering logic
     for (vars->cast_vars->x = 0; vars->cast_vars->x < screenWidth; vars->cast_vars->x++)
@@ -167,7 +221,7 @@ int performRaycasting(t_vars *vars)
         vars->cast_vars->hit = 0; // Was a wall hit?
         calculate_step_n_inicial_sidedist(vars);
         // Calculate step and initial sideDist
-        perform_dda(vars);   
+        perform_dda(vars);
         // Calculate distance projected on camera direction (Euclidean distance will give fisheye effect!)
         if (vars->cast_vars->side == 0)
             vars->cast_vars->perpWallDist = (vars->cast_vars->mapX - vars->posX + (1 - vars->cast_vars->stepX) / 2) / vars->cast_vars->rayDirX;
@@ -199,60 +253,63 @@ int performRaycasting(t_vars *vars)
                 color = 0xFFFF00;
                 break;
         }
-        // Draw the pixels of the stripe as a vertical line
-        mlx_pixel_put(vars->mlx, vars->mlx_win, vars->cast_vars->x, drawStart, color);
-        mlx_pixel_put(vars->mlx, vars->mlx_win, vars->cast_vars->x, drawEnd, color);
+        // Draw the pixels of the stripe on the buffer image
+        draw_line(buffer_data, vars->cast_vars->x, drawStart, vars->cast_vars->x, drawEnd, color);
     }
-    if(vars->buffer_img)
-        mlx_destroy_image(vars->mlx, vars->buffer_img);
-    vars->buffer_img = mlx_new_image(vars->mlx, screenWidth, screenHeight);
-    mlx_put_image_to_window(vars->mlx, vars->mlx_win, vars->buffer_img, 0, 0);
-    return (0);
+
+    // Render the buffer image to the screen
+    mlx_put_image_to_window(vars->mlx, vars->win, buffer_img, 0, 0);
+    mlx_destroy_image(vars->mlx, buffer_img);
+
+    vars->update_render = 0;
+    return 0;
 }
+
 
 int handle_key_press(int keycode, t_vars *vars)
 {
-    double rotationSpeed = 0.05; // Adjust the rotation speed as needed
-    
+    double moveSpeed = 0.1;
+    double rotationSpeed = 0.05;
+
     if (keycode == KEY_ESC)
     {
         // Close the window and quit the program
-        mlx_destroy_window(vars->mlx, vars->mlx_win);
+        mlx_destroy_window(vars->mlx, vars->win);
         mlx_destroy_display(vars->mlx);
         free(vars->mlx);
         exit(0);
     }
-    else if (keycode == KEY_W)
+    else if (keycode == KEY_W || keycode == KEY_UP)
     {
         // Move forward
-        if (worldMap[(int)(vars->posX + vars->dirX)][(int)(vars->posY)] == 0)
-            vars->posX += vars->dirX * 0.1;
-        if (worldMap[(int)(vars->posX)][(int)(vars->posY + vars->dirY)] == 0)
-            vars->posY += vars->dirY * 0.1;
+        if (worldMap[(int)(vars->posX + vars->dirX * moveSpeed)][(int)(vars->posY)] == 0)
+            vars->posX += vars->dirX * moveSpeed;
+        if (worldMap[(int)(vars->posX)][(int)(vars->posY + vars->dirY * moveSpeed)] == 0)
+            vars->posY += vars->dirY * moveSpeed;
     }
     else if (keycode == KEY_A)
     {
         // Strafe left
-        if (worldMap[(int)(vars->posX - vars->dirY)][(int)(vars->posY)] == 0)
-            vars->posX -= vars->dirY * 0.1;
-        if (worldMap[(int)(vars->posX)][(int)(vars->posY + vars->dirX)] == 0)
-            vars->posY += vars->dirX * 0.1;
+        if (worldMap[(int)(vars->posX - vars->dirY * moveSpeed)][(int)(vars->posY)] == 0)
+            vars->posX -= vars->dirY * moveSpeed;
+        if (worldMap[(int)(vars->posX)][(int)(vars->posY + vars->dirX * moveSpeed)] == 0)
+            vars->posY += vars->dirX * moveSpeed;
     }
-    else if (keycode == KEY_S)
+    else if (keycode == KEY_S || keycode == KEY_DOWN)
     {
         // Move backward
-        if (worldMap[(int)(vars->posX - vars->dirX)][(int)(vars->posY)] == 0)
-            vars->posX -= vars->dirX * 0.1;
-        if (worldMap[(int)(vars->posX)][(int)(vars->posY - vars->dirY)] == 0)
-            vars->posY -= vars->dirY * 0.1;
+        if (worldMap[(int)(vars->posX - vars->dirX * moveSpeed)][(int)(vars->posY)] == 0)
+            vars->posX -= vars->dirX * moveSpeed;
+        if (worldMap[(int)(vars->posX)][(int)(vars->posY - vars->dirY * moveSpeed)] == 0)
+            vars->posY -= vars->dirY * moveSpeed;
     }
     else if (keycode == KEY_D)
     {
         // Strafe right
-        if (worldMap[(int)(vars->posX + vars->dirY)][(int)(vars->posY)] == 0)
-            vars->posX += vars->dirY * 0.1;
-        if (worldMap[(int)(vars->posX)][(int)(vars->posY - vars->dirX)] == 0)
-            vars->posY -= vars->dirX * 0.1;
+        if (worldMap[(int)(vars->posX + vars->dirY * moveSpeed)][(int)(vars->posY)] == 0)
+            vars->posX += vars->dirY * moveSpeed;
+        if (worldMap[(int)(vars->posX)][(int)(vars->posY - vars->dirX * moveSpeed)] == 0)
+            vars->posY -= vars->dirX * moveSpeed;
     }
     else if (keycode == KEY_LEFT)
     {
@@ -274,8 +331,12 @@ int handle_key_press(int keycode, t_vars *vars)
         vars->planeX = vars->planeX * cos(-rotationSpeed) - vars->planeY * sin(-rotationSpeed);
         vars->planeY = oldPlaneX * sin(-rotationSpeed) + vars->planeY * cos(-rotationSpeed);
     }
+    vars->update_render = 1;
     return (0);
 }
+
+
+
 
 
 
@@ -292,13 +353,18 @@ int main(void)
     vars.planeX = 0;
     vars.planeY = 0.66;
     vars.buffer_img = NULL;
+    vars.buffer_data = NULL;
+    vars.bits_per_pixel = 0;
+    vars.size_line = 0;
+    vars.endian = 0;
     vars.update_render=1;
     vars.cast_vars=&cast_vars;
     vars.mlx = mlx_init();
-    vars.mlx_win = mlx_new_window(vars.mlx, screenWidth, screenHeight, "Raycaster");
+    vars.win = mlx_new_window(vars.mlx, screenWidth, screenHeight, "Raycaster");
 
-    
-    mlx_hook(vars.mlx_win, 2, 1L << 0, handle_key_press, &vars); 
+    // draw_frame(&vars);
+    performRaycasting(&vars);
+    mlx_hook(vars.win, 2, 1L << 0, handle_key_press, &vars); 
     mlx_loop_hook(vars.mlx, performRaycasting, &vars);
     mlx_loop(vars.mlx);
     return 0;
