@@ -1,4 +1,3 @@
-
 #include "../minilibx-linux/mlx.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,9 +5,10 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <math.h>
+#include <X11/Xlib.h>
 
-#define screenWidth 1024
-#define screenHeight 768
+// #define screenWidth 1024
+// #define screenHeight 768
 #define mapWidth 24
 #define mapHeight 24
 
@@ -65,8 +65,8 @@ typedef struct s_vars {
     int bits_per_pixel;
     int size_line;
     int endian;
-    // int screenWidth;
-    // int screenHeight;
+    int screenWidth;
+    int screenHeight;
 } t_vars;
 
 
@@ -102,7 +102,7 @@ int worldMap[mapWidth][mapHeight]=
   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
 
-void draw_line(int *buffer_data, int x0, int y0, int x1, int y1, int color)
+void draw_line(int *buffer_data, int x0, int y0, int x1, int y1, int color, int screenWidth)
 {
     int dx = abs(x1 - x0);
     int dy = abs(y1 - y0);
@@ -139,9 +139,10 @@ void draw_line(int *buffer_data, int x0, int y0, int x1, int y1, int color)
 void ray_calculations(t_vars *vars)
 {
     // Calculate ray position and direction
-    vars->cast_vars->cameraX = 2 * vars->cast_vars->x / (double)screenWidth - 1;
+    vars->cast_vars->cameraX = 2 * vars->cast_vars->x / (double)vars->screenWidth - 1;
     vars->cast_vars->rayDirX = vars->dirX + vars->planeX * vars->cast_vars->cameraX;
     vars->cast_vars->rayDirY = vars->dirY + vars->planeY * vars->cast_vars->cameraX;
+    vars->cast_vars->perpWallDist = 0.0;
 
     // Map position
     vars->cast_vars->mapX = (int)vars->posX;
@@ -198,10 +199,32 @@ void perform_dda(t_vars *vars)
             vars->cast_vars->side = 1;
         }
 
+        // break if outside map
+        if (vars->cast_vars->mapX < 0 || vars->cast_vars->mapX >= mapWidth || vars->cast_vars->mapY < 0 || vars->cast_vars->mapY >= mapHeight)
+            break;
         // Check if ray has hit a wall
         if (worldMap[vars->cast_vars->mapX][vars->cast_vars->mapY] > 0)
             vars->cast_vars->hit = 1;
     }
+}
+
+int interpolate_color(int color1, int color2, float weight)
+{
+    int red1 = (color1 >> 16) & 0xFF;
+    int green1 = (color1 >> 8) & 0xFF;
+    int blue1 = color1 & 0xFF;
+
+    int red2 = (color2 >> 16) & 0xFF;
+    int green2 = (color2 >> 8) & 0xFF;
+    int blue2 = color2 & 0xFF;
+
+    int interpolatedRed = (int)(red1 + weight * (red2 - red1));
+    int interpolatedGreen = (int)(green1 + weight * (green2 - green1));
+    int interpolatedBlue = (int)(blue1 + weight * (blue2 - blue1));
+
+    int interpolatedColor = (interpolatedRed << 16) | (interpolatedGreen << 8) | interpolatedBlue;
+
+    return interpolatedColor;
 }
 
 int performRaycasting(t_vars *vars)
@@ -209,12 +232,14 @@ int performRaycasting(t_vars *vars)
     if (vars->update_render == 0)
         return 0;
 
+    if(vars->buffer_img)
+        mlx_destroy_image(vars->mlx, vars->buffer_img);
     // Create a buffer image to store the rendered frame
-    void *buffer_img = mlx_new_image(vars->mlx, screenWidth, screenHeight);
+    void *buffer_img = mlx_new_image(vars->mlx, vars->screenWidth, vars->screenHeight);
     int *buffer_data = (int *)mlx_get_data_addr(buffer_img, &(vars->bits_per_pixel), &(vars->size_line), &(vars->endian));
 
     // Raycasting and rendering logic
-    for (vars->cast_vars->x = 0; vars->cast_vars->x < screenWidth; vars->cast_vars->x++)
+    for (vars->cast_vars->x = 0; vars->cast_vars->x < vars->screenWidth; vars->cast_vars->x++)
     {
         ray_calculations(vars);
         // Direction to step in x or y-direction (either +1 or -1)
@@ -228,14 +253,14 @@ int performRaycasting(t_vars *vars)
         else
             vars->cast_vars->perpWallDist = (vars->cast_vars->mapY - vars->posY + (1 - vars->cast_vars->stepY) / 2) / vars->cast_vars->rayDirY;
         // Calculate height of line to draw on screen
-        int lineHeight = (int)(screenHeight / vars->cast_vars->perpWallDist);
+        int lineHeight = (int)(vars->screenHeight / vars->cast_vars->perpWallDist);
         // Calculate lowest and highest pixel to fill in current stripe
-        int drawStart = -lineHeight / 2 + screenHeight / 2;
+        int drawStart = -lineHeight / 2 + vars->screenHeight / 2;
         if (drawStart < 0)
             drawStart = 0;
-        int drawEnd = lineHeight / 2 + screenHeight / 2;
-        if (drawEnd >= screenHeight)
-            drawEnd = screenHeight - 1;
+        int drawEnd = lineHeight / 2 + vars->screenHeight / 2;
+        if (drawEnd >= vars->screenHeight)
+            drawEnd = vars->screenHeight - 1;
         // Choose wall color based on the tile type
         int color;
         switch (worldMap[vars->cast_vars->mapX][vars->cast_vars->mapY])
@@ -254,7 +279,16 @@ int performRaycasting(t_vars *vars)
                 break;
         }
         // Draw the pixels of the stripe on the buffer image
-        draw_line(buffer_data, vars->cast_vars->x, drawStart, vars->cast_vars->x, drawEnd, color);
+        draw_line(buffer_data, vars->cast_vars->x, drawStart, vars->cast_vars->x, drawEnd, color, vars->screenWidth);
+        // Draw the pixels of the floor and ceiling on the buffer image
+        int floorColor = 0x808080; // Gray color for the floor
+        int ceilingColor = 0x404040; // Dark gray color for the ceiling
+        for (int y = drawEnd + 1; y < vars->screenHeight; y++)
+        {
+            // Draw the floor and ceiling pixels on the buffer image
+            buffer_data[y * vars->screenWidth + vars->cast_vars->x] = floorColor;
+            buffer_data[(vars->screenHeight - y) * vars->screenWidth + vars->cast_vars->x] = ceilingColor;
+        }
     }
 
     // Render the buffer image to the screen
@@ -279,7 +313,7 @@ int handle_key_press(int keycode, t_vars *vars)
         free(vars->mlx);
         exit(0);
     }
-    else if (keycode == KEY_W || keycode == KEY_UP)
+    if (keycode == KEY_W || keycode == KEY_UP)
     {
         // Move forward
         if (worldMap[(int)(vars->posX + vars->dirX * moveSpeed)][(int)(vars->posY)] == 0)
@@ -287,7 +321,7 @@ int handle_key_press(int keycode, t_vars *vars)
         if (worldMap[(int)(vars->posX)][(int)(vars->posY + vars->dirY * moveSpeed)] == 0)
             vars->posY += vars->dirY * moveSpeed;
     }
-    else if (keycode == KEY_A)
+    if (keycode == KEY_A)
     {
         // Strafe left
         if (worldMap[(int)(vars->posX - vars->dirY * moveSpeed)][(int)(vars->posY)] == 0)
@@ -295,7 +329,7 @@ int handle_key_press(int keycode, t_vars *vars)
         if (worldMap[(int)(vars->posX)][(int)(vars->posY + vars->dirX * moveSpeed)] == 0)
             vars->posY += vars->dirX * moveSpeed;
     }
-    else if (keycode == KEY_S || keycode == KEY_DOWN)
+    if (keycode == KEY_S || keycode == KEY_DOWN)
     {
         // Move backward
         if (worldMap[(int)(vars->posX - vars->dirX * moveSpeed)][(int)(vars->posY)] == 0)
@@ -303,7 +337,7 @@ int handle_key_press(int keycode, t_vars *vars)
         if (worldMap[(int)(vars->posX)][(int)(vars->posY - vars->dirY * moveSpeed)] == 0)
             vars->posY -= vars->dirY * moveSpeed;
     }
-    else if (keycode == KEY_D)
+    if (keycode == KEY_D)
     {
         // Strafe right
         if (worldMap[(int)(vars->posX + vars->dirY * moveSpeed)][(int)(vars->posY)] == 0)
@@ -311,7 +345,7 @@ int handle_key_press(int keycode, t_vars *vars)
         if (worldMap[(int)(vars->posX)][(int)(vars->posY - vars->dirX * moveSpeed)] == 0)
             vars->posY -= vars->dirX * moveSpeed;
     }
-    else if (keycode == KEY_LEFT)
+    if (keycode == KEY_LEFT)
     {
         // Rotate left
         double oldDirX = vars->dirX;
@@ -321,7 +355,7 @@ int handle_key_press(int keycode, t_vars *vars)
         vars->planeX = vars->planeX * cos(rotationSpeed) - vars->planeY * sin(rotationSpeed);
         vars->planeY = oldPlaneX * sin(rotationSpeed) + vars->planeY * cos(rotationSpeed);
     }
-    else if (keycode == KEY_RIGHT)
+    if (keycode == KEY_RIGHT)
     {
         // Rotate right
         double oldDirX = vars->dirX;
@@ -343,8 +377,19 @@ int handle_key_press(int keycode, t_vars *vars)
 int main(void)
 {
     
-
+    
+    
+    
     t_vars vars;
+    Display *display = XOpenDisplay(NULL);
+    Screen *screen = DefaultScreenOfDisplay(display);
+    
+    int width = WidthOfScreen(screen);
+    int height = HeightOfScreen(screen);
+    
+    printf("Screen resolution: %d x %d\n", width, height);
+    
+    XCloseDisplay(display);
     t_cast_vars cast_vars;
     vars.posX = 22;
     vars.posY = 12;
@@ -359,9 +404,12 @@ int main(void)
     vars.endian = 0;
     vars.update_render=1;
     vars.cast_vars=&cast_vars;
+    vars.screenWidth=WidthOfScreen(screen)-10;
+    vars.screenHeight=height-100;
     vars.mlx = mlx_init();
-    vars.win = mlx_new_window(vars.mlx, screenWidth, screenHeight, "Raycaster");
+    vars.win = mlx_new_window(vars.mlx, vars.screenWidth, vars.screenHeight, "Raycaster");
 
+    
     // draw_frame(&vars);
     performRaycasting(&vars);
     mlx_hook(vars.win, 2, 1L << 0, handle_key_press, &vars); 
