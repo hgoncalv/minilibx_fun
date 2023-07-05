@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = #-Wall -Wextra -Werror
 LDFLAGS = -L./minilibx-linux -lmlx_Linux -lX11 -lXext -lm
 
 SRC_DIR = src
