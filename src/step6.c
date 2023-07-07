@@ -11,6 +11,9 @@
 // #define screenHeight 768
 #define mapWidth 24
 #define mapHeight 24
+#define texWidth 64
+#define texHeight 64
+#define NUM_TEXTURES 8
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
@@ -26,10 +29,6 @@
 #define KEY_A 0x0061    // A key
 #define KEY_S 0x0073    // S key
 #define KEY_D 0x0064    // D key
-
-#define texWidth 64
-#define texHeight 64
-#define NUM_TEXTURES 8
 
 typedef struct s_cast_vars {
     double cameraX;
@@ -105,6 +104,26 @@ int worldMap[mapWidth][mapHeight]=
   {1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
+
+void draw_vertical_line_from_XPM(int *buffer_data, int x, int drawStart, int drawEnd, char **xpm_data, int xpm_height, t_vars *vars)
+{
+    int xpm_width;
+    sscanf(xpm_data[0], "%d %d", &xpm_width, &xpm_height);
+
+    int xpm_repeat = (drawEnd - drawStart + 1) / xpm_height; // Determine the number of times to repeat the XPM vertically
+
+    for (int y = drawStart; y <= drawEnd; y++)
+    {
+        int xpm_y = (y - drawStart) % xpm_height; // Calculate the vertical position within the XPM image
+        int xpm_x = vars->cast_vars->perpWallDist * xpm_width; // Calculate the horizontal position based on the intersection point
+        for (int i = 0; i < 24; i++)
+        {
+            int color_index = xpm_data[xpm_y][(xpm_x + i) % xpm_width]; // Wrap around horizontally when exceeding XPM width
+            int color = mlx_get_color_value(vars->mlx, color_index);
+            buffer_data[y * vars->screenWidth + (x + i)] = color;
+        }
+    }
+}
 
 void draw_line(int *buffer_data, int x0, int y0, int x1, int y1, int color, int screenWidth)
 {
@@ -233,13 +252,8 @@ int interpolate_color(int color1, int color2, float weight)
 
 int performRaycasting(t_vars *vars)
 {
-    if (vars->update_render == 0)
-        return 0;
-
-    if (vars->buffer_img)
-        mlx_destroy_image(vars->mlx, vars->buffer_img);
-
-    
+    int w = WINDOW_WIDTH;
+    int h = WINDOW_HEIGHT;
     int texture[NUM_TEXTURES][texWidth * texHeight];
     for (int x = 0; x < texWidth; x++) {
         for (int y = 0; y < texHeight; y++) {
@@ -258,76 +272,153 @@ int performRaycasting(t_vars *vars)
             texture[7][texWidth * y + x] = 128 + 256 * 128 + 65536 * 128; //flat grey texture
         }
     }
-    // Create a buffer image to store the rendered frame
-    void *buffer_img = mlx_new_image(vars->mlx, vars->screenWidth, vars->screenHeight);
-    int *buffer_data = (int *)mlx_get_data_addr(buffer_img, &(vars->bits_per_pixel), &(vars->size_line), &(vars->endian));
+    if (vars->update_render == 0)
+        return 0;
+    void *buffer = mlx_new_image(vars->mlx, vars->screenWidth, vars->screenHeight);
+    int *buffer_data = (int *)mlx_get_data_addr(buffer, &(vars->bits_per_pixel), &(vars->size_line), &(vars->endian));
+    double posX = 22.0, posY = 11.5;  //x and y start position
+    double dirX = -1.0, dirY = 0.0; //initial direction vector
+    double planeX = 0.0, planeY = 0.66; //the 2d raycaster version of camera plane
 
-    // Raycasting and rendering logic
-    for (vars->cast_vars->x = 0; vars->cast_vars->x < vars->screenWidth; vars->cast_vars->x++)
+    double time = 0; //time of current frame
+    double oldTime = 0; //time of previous frame
+    
+    for(int x = 0; x < w; x++)
     {
-        ray_calculations(vars);
-        // Direction to step in x or y-direction (either +1 or -1)
-        vars->cast_vars->hit = 0; // Was a wall hit?
-        calculate_step_n_inicial_sidedist(vars);
-        // Calculate step and initial sideDist
-        perform_dda(vars);
-        // Calculate distance projected on camera direction (Euclidean distance will give fisheye effect!)
-        if (vars->cast_vars->side == 0)
-            vars->cast_vars->perpWallDist = (vars->cast_vars->mapX - vars->posX + (1 - vars->cast_vars->stepX) / 2) / vars->cast_vars->rayDirX;
+        //calculate ray position and direction
+        double cameraX = 2 * x / (double)w - 1; //x-coordinate in camera space
+        double rayDirX = dirX + planeX*cameraX;
+        double rayDirY = dirY + planeY*cameraX;
+
+        //which box of the map we're in
+        int mapX = (int)posX;
+        int mapY = (int)posY;
+
+        //length of ray from current position to next x or y-side
+        double sideDistX;
+        double sideDistY;
+
+        //length of ray from one x or y-side to next x or y-side
+        double deltaDistX;
+        double deltaDistY;
+        if (rayDirX == 0)
+        deltaDistX = 1e30;
         else
-            vars->cast_vars->perpWallDist = (vars->cast_vars->mapY - vars->posY + (1 - vars->cast_vars->stepY) / 2) / vars->cast_vars->rayDirY;
-        // Calculate height of line to draw on screen
-        int lineHeight = (int)(vars->screenHeight / vars->cast_vars->perpWallDist);
-        // Calculate lowest and highest pixel to fill in current stripe
-        int drawStart = -lineHeight / 2 + vars->screenHeight / 2;
-        if (drawStart < 0)
-            drawStart = 0;
-        int drawEnd = lineHeight / 2 + vars->screenHeight / 2;
-        if (drawEnd >= vars->screenHeight)
-            drawEnd = vars->screenHeight - 1;
-        // Choose wall texture based on the tile type
-        int texNum = worldMap[vars->cast_vars->mapX][vars->cast_vars->mapY] - 1; // Adjust for texture array index
-        // Calculate the texture coordinate (x-coordinate on the texture)
-        double wallX;
-        if (vars->cast_vars->side == 0)
-            wallX = vars->posY + vars->cast_vars->perpWallDist * vars->cast_vars->rayDirY;
+        deltaDistX = fabs(1 / rayDirX);
+        if (rayDirY == 0)
+            deltaDistY = 1e30;
         else
-            wallX = vars->posX + vars->cast_vars->perpWallDist * vars->cast_vars->rayDirX;
-        wallX -= floor(wallX);
-        int texX = (int)(wallX * texWidth);
-        if (vars->cast_vars->side == 0 && vars->cast_vars->rayDirX > 0)
-            texX = texWidth - texX - 1;
-        if (vars->cast_vars->side == 1 && vars->cast_vars->rayDirY < 0)
-            texX = texWidth - texX - 1;
-        // Draw the pixels of the stripe using the texture
-        for (int y = drawStart; y <= drawEnd; y++)
+            deltaDistY = fabs(1 / rayDirX);
+        double perpWallDist;
+
+        //what direction to step in x or y-direction (either +1 or -1)
+        int stepX;
+        int stepY;
+
+        int hit = 0; //was there a wall hit?
+        int side; //was a NS or a EW wall hit?
+
+        //calculate step and initial sideDist
+        if(rayDirX < 0)
         {
-            // Calculate the texture coordinate (y-coordinate on the texture)
-            int texY = (((y * 2 - vars->screenHeight + lineHeight) << 6) / lineHeight) / 2;
-            // Calculate the texture color based on the texture number and texture coordinates
-            int color = texture[texNum][texHeight * texY + texX];
-            // Draw the color to the buffer image
-            buffer_data[y * vars->screenWidth + vars->cast_vars->x] = color;
+        stepX = -1;
+        sideDistX = (posX - mapX) * deltaDistX;
         }
-        // Draw the pixels of the floor and ceiling on the buffer image
-        int floorColor = 0x808080;    // Gray color for the floor
-        int ceilingColor = 0x404040;  // Dark gray color for the ceiling
-        for (int y = drawEnd + 1; y < vars->screenHeight; y++)
+        else
         {
-            // Draw the floor and ceiling pixels on the buffer image
-            buffer_data[y * vars->screenWidth + vars->cast_vars->x] = floorColor;
-            buffer_data[(vars->screenHeight - y) * vars->screenWidth + vars->cast_vars->x] = ceilingColor;
+        stepX = 1;
+        sideDistX = (mapX + 1.0 - posX) * deltaDistX;
+        }
+        if(rayDirY < 0)
+        {
+        stepY = -1;
+        sideDistY = (posY - mapY) * deltaDistY;
+        }
+        else
+        {
+        stepY = 1;
+        sideDistY = (mapY + 1.0 - posY) * deltaDistY;
+        }
+        //perform DDA
+        while (hit == 0)
+        {
+        //jump to next map square, either in x-direction, or in y-direction
+        if(sideDistX < sideDistY)
+        {
+            sideDistX += deltaDistX;
+            mapX += stepX;
+            side = 0;
+        }
+        else
+        {
+            sideDistY += deltaDistY;
+            mapY += stepY;
+            side = 1;
+        }
+        //Check if ray has hit a wall
+        if(worldMap[mapX][mapY] > 0) hit = 1;
+        }
+
+        //Calculate distance of perpendicular ray (Euclidean distance would give fisheye effect!)
+        // if(side == 0) perpWallDist = (sideDistX - deltaDistX);
+        // else          perpWallDist = (sideDistY - deltaDistY);
+        if (side == 0)
+            perpWallDist = (mapX - vars->posX + (1 - stepX) / 2) / rayDirX;
+        else
+            perpWallDist = (mapY - vars->posY + (1 - stepY) / 2) / rayDirY;
+
+        //Calculate height of line to draw on screen
+        int lineHeight = (int)(h / perpWallDist);
+
+
+        int pitch = 100;
+
+        //calculate lowest and highest pixel to fill in current stripe
+        int drawStart = -lineHeight / 2 + h / 2 + pitch;
+        if(drawStart < 0) drawStart = 0;
+        int drawEnd = lineHeight / 2 + h / 2 + pitch;
+        if(drawEnd >= h) drawEnd = h - 1;
+
+        //texturing calculations
+        int texNum = worldMap[mapX][mapY] - 1; //1 subtracted from it so that texture 0 can be used!
+
+        //calculate value of wallX
+        double wallX; //where exactly the wall was hit
+        if(side == 0) wallX = posY + perpWallDist * rayDirY;
+        else          wallX = posX + perpWallDist * rayDirX;
+        wallX -= floor((wallX));
+
+        //x coordinate on the texture
+        int texX = (int)(wallX * (double)(texWidth));
+        if(side == 0 && rayDirX > 0) texX = texWidth - texX - 1;
+        if(side == 1 && rayDirY < 0) texX = texWidth - texX - 1;
+
+        // TODO: an integer-only bresenham or DDA like algorithm could make the texture coordinate stepping faster
+        // How much to increase the texture coordinate per screen pixel
+        double step = 1.0 * texHeight / lineHeight;
+        // Starting texture coordinate
+        double texPos = (drawStart - pitch - h / 2 + lineHeight / 2) * step;
+        for(int y = drawStart; y < drawEnd; y++)
+        {
+        // Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
+        int texY = (int)texPos & (texHeight - 1);
+        texPos += step;
+        int color = texture[texNum][texHeight * texY + texX];
+        //make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
+        if(side == 1) color = (color >> 1) & 8355711;
+        //put color in pixel
+        int *pixel = &buffer_data[y * vars->size_line / 4 + x];
+        *pixel = color;
         }
     }
 
     // Render the buffer image to the screen
-    mlx_put_image_to_window(vars->mlx, vars->win, buffer_img, 0, 0);
-    mlx_destroy_image(vars->mlx, buffer_img);
+    mlx_put_image_to_window(vars->mlx, vars->win, buffer, 0, 0);
+    mlx_destroy_image(vars->mlx, buffer);
 
     vars->update_render = 0;
     return 0;
 }
-
 
 
 int handle_key_press(int keycode, t_vars *vars)
@@ -414,8 +505,8 @@ int main(void)
     Display *display = XOpenDisplay(NULL);
     Screen *screen = DefaultScreenOfDisplay(display);
     
-    int width = WidthOfScreen(screen);
-    int height = HeightOfScreen(screen);
+    int width = 800;//WidthOfScreen(screen);
+    int height = 600;//HeightOfScreen(screen);
     
     printf("Screen resolution: %d x %d\n", width, height);
     
@@ -434,7 +525,7 @@ int main(void)
     vars.endian = 0;
     vars.update_render=1;
     vars.cast_vars=&cast_vars;
-    vars.screenWidth=WidthOfScreen(screen)-10;
+    vars.screenWidth=width-10;
     vars.screenHeight=height-100;
     vars.mlx = mlx_init();
     vars.win = mlx_new_window(vars.mlx, vars.screenWidth, vars.screenHeight, "Raycaster");
