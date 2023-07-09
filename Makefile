@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = #-Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror -g -fsanitize=address
 LDFLAGS = -L./minilibx-linux -lmlx_Linux -lX11 -lXext -lm   -lmlx -L/usr/include/../lib -lXext -lX11 -lm 
 
 SRC_DIR = src

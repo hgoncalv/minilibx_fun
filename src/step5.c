@@ -54,11 +54,21 @@ typedef struct s_cast_vars
     int side;
     int x;
 } t_cast_vars;
+typedef struct s_texture
+{
+    int width;
+    int height;
+    int bits_per_pixel;
+    int size_line;
+    int endian;
+    int *data;
+} t_texture;
 
 typedef struct s_vars
 {
     void *mlx;
     void *win;
+    t_texture textures[8];
     double posX;
     double posY;
     double dirX;
@@ -74,20 +84,13 @@ typedef struct s_vars
     int endian;
     int screenWidth;
     int screenHeight;
+
 } t_vars;
 
-typedef struct s_texture
-{
-    int width;
-    int height;
-    int bits_per_pixel;
-    int size_line;
-    int endian;
-    int *data;
-} t_texture;
 
-void draw_rectangle(void *mlx, void *win, int x, int y, int width, int height);
+void draw_rectangle(void *mlx, void *win, int x, int y, int width, int height, int color);
 int draw_frame(void *param);
+void addMinimap(t_vars *vars);
 
 int worldMap[mapWidth][mapHeight] =
     {
@@ -116,37 +119,54 @@ int worldMap[mapWidth][mapHeight] =
         {1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
         {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}};
 
-void draw_line(int *buffer_data, int x0, int y0, int x1, int y1, int color, int screenWidth)
+void draw_line(t_vars *vars, int x1, int y1, int x2, int y2, int color)
 {
-    int dx = abs(x1 - x0);
-    int dy = abs(y1 - y0);
-    int sx = (x0 < x1) ? 1 : -1;
-    int sy = (y0 < y1) ? 1 : -1;
+    int dx = abs(x2 - x1);
+    int dy = abs(y2 - y1);
+    int sx = x1 < x2 ? 1 : -1;
+    int sy = y1 < y2 ? 1 : -1;
     int err = dx - dy;
 
-    while (1)
+    while (x1 != x2 || y1 != y2)
     {
-        // Calculate the index of the pixel in the buffer image data
-        int pixel_index = y0 * screenWidth + x0;
-        // Set the pixel color directly in the buffer image data
-        buffer_data[pixel_index] = color;
+        // Set pixel at (x1, y1) to the desired color
+        mlx_pixel_put(vars->mlx, vars->win, x1, y1, color);
 
-        if (x0 == x1 && y0 == y1)
-            break;
-
-        int e2 = 2 * err;
-        if (e2 > -dy)
+        int err2 = 2 * err;
+        if (err2 > -dy)
         {
             err -= dy;
-            x0 += sx;
+            x1 += sx;
         }
-        if (e2 < dx)
+        if (err2 < dx)
         {
             err += dx;
-            y0 += sy;
+            y1 += sy;
         }
     }
 }
+
+void draw_rectangle(void *mlx, void *win, int x, int y, int width, int height, int color)
+{
+    //0xFFFFFF
+    int endX = x + width;
+    int endY = y + height;
+
+    // Draw vertical lines
+    for (int i = y; i < endY; i++)
+    {
+        mlx_pixel_put(mlx, win, x, i, color);     // Set pixel color to white
+        mlx_pixel_put(mlx, win, endX, i, color);  // Set pixel color to white
+    }
+
+    // Draw horizontal lines
+    for (int i = x; i < endX; i++)
+    {
+        mlx_pixel_put(mlx, win, i, y, color);     // Set pixel color to white
+        mlx_pixel_put(mlx, win, i, endY, color);  // Set pixel color to white
+    }
+}
+
 
 void ray_calculations(t_vars *vars)
 {
@@ -165,7 +185,7 @@ void ray_calculations(t_vars *vars)
     // Length of ray from one x or y-side to next x or y-side
     vars->cast_vars->deltaDistX = fabs(1 / vars->cast_vars->rayDirX);
     vars->cast_vars->deltaDistY = fabs(1 / vars->cast_vars->rayDirY);
-    vars->cast_vars->perpWallDist;
+    
 }
 
 void calculate_step_n_inicial_sidedist(t_vars *vars)
@@ -239,25 +259,20 @@ int interpolate_color(int color1, int color2, float weight)
     return interpolatedColor;
 }
 
-t_texture loadTexture(const char *filename)
+t_texture loadTexture(const char *filename, t_vars *vars)
 {
     t_texture texture;
     texture.width = 0;
     texture.height = 0;
     texture.data = NULL;
 
-    void *mlx_ptr = mlx_init();
-    if (!mlx_ptr)
-    {
-        printf("Failed to initialize MiniLibX\n");
-        return texture;
-    }
+    
 
-    void *image = mlx_xpm_file_to_image(mlx_ptr, (char *)filename, &texture.width, &texture.height);
+    void *image = mlx_xpm_file_to_image(vars->mlx, (char *)filename, &texture.width, &texture.height);
     if (!image)
     {
         printf("Failed to load XPM file: %s\n", filename);
-        mlx_destroy_display(mlx_ptr);
+        // mlx_destroy_display(vars->mlx);
         return texture;
     }
 
@@ -267,16 +282,16 @@ t_texture loadTexture(const char *filename)
     if (!texture.data)
     {
         printf("Failed to allocate memory for texture data\n");
-        mlx_destroy_image(mlx_ptr, image);
-        mlx_destroy_display(mlx_ptr);
+        mlx_destroy_image(vars->mlx, image);
+        // mlx_destroy_display(vars->mlx);
         return texture;
     }
 
     // Copy the image data to the texture data
     memcpy(texture.data, image_data, sizeof(int) * texture.width * texture.height);
 
-    mlx_destroy_image(mlx_ptr, image);
-    mlx_destroy_display(mlx_ptr);
+    mlx_destroy_image(vars->mlx, image);
+    // mlx_destroy_display(vars->mlx);
 
     return texture;
 }
@@ -289,16 +304,7 @@ int performRaycasting(t_vars *vars)
     if (vars->buffer_img)
         mlx_destroy_image(vars->mlx, vars->buffer_img);
 
-    // Load textures from XPM files and store them in an array
-    t_texture textures[NUM_TEXTURES];
-    textures[0] = loadTexture("xpm/redbrick.xpm");
-    textures[1] = loadTexture("xpm/grass.xpm");
-    textures[2] = loadTexture("xpm/greenlight.xpm");
-    textures[3] = loadTexture("xpm/greystone.xpm");
-    textures[4] = loadTexture("xpm/mossy.xpm");
-    textures[5] = loadTexture("xpm/pillar.xpm");
-    textures[6] = loadTexture("xpm/purplestone.xpm");
-    textures[7] = loadTexture("xpm/wood.xpm");
+    
     // Add more texture loading as needed
 
     // Create a buffer image to store the rendered frame
@@ -337,45 +343,100 @@ int performRaycasting(t_vars *vars)
         else
             wallX = vars->posX + vars->cast_vars->perpWallDist * vars->cast_vars->rayDirX;
         wallX -= floor(wallX);
-        int texX = (int)(wallX * textures[texNum].width);
+        int texX = (int)(wallX * (vars->textures)[texNum].width);
         if (vars->cast_vars->side == 0 && vars->cast_vars->rayDirX > 0)
-            texX = textures[texNum].width - texX - 1;
+            texX = (vars->textures)[texNum].width - texX - 1;
         if (vars->cast_vars->side == 1 && vars->cast_vars->rayDirY < 0)
-            texX = textures[texNum].width - texX - 1;
+            texX = (vars->textures)[texNum].width - texX - 1;
         // Draw the pixels of the stripe using the texture
-        for (int y = drawStart; y <= drawEnd; y++)
+        for (int y = drawStart; y < drawEnd; y++)
         {
             // Calculate the texture coordinate (y-coordinate on the texture)
             int texY = (((y * 2 - vars->screenHeight + lineHeight) << 6) / lineHeight) / 2;
             // Calculate the texture color based on the texture number and texture coordinates
-            int color = textures[texNum].data[textures[texNum].width * texY + texX];
+            int color = (vars->textures)[texNum].data[(vars->textures)[texNum].width * texY + texX];
             // Draw the color to the buffer image
             buffer_data[y * vars->screenWidth + vars->cast_vars->x] = color;
         }
         // Draw the pixels of the floor and ceiling on the buffer image
-        int floorColor = 0x808080;   // Gray color for the floor
-        int ceilingColor = 0x404040; // Dark gray color for the ceiling
-        for (int y = drawEnd + 1; y < vars->screenHeight; y++)
-        {
-            // Draw the floor and ceiling pixels on the buffer image
-            buffer_data[y * vars->screenWidth + vars->cast_vars->x] = floorColor;
-            buffer_data[(vars->screenHeight - y) * vars->screenWidth + vars->cast_vars->x] = ceilingColor;
-        }
+        // int floorColor = 0x808080;   // Gray color for the floor
+        // int ceilingColor = 0x404040; // Dark gray color for the ceiling
+        // for (int y = drawEnd + 1; y < vars->screenHeight; y++)
+        // {
+        //     // Draw the floor and ceiling pixels on the buffer image
+        //     buffer_data[y * vars->screenWidth + vars->cast_vars->x] = floorColor;
+        //     buffer_data[(vars->screenHeight - y) * vars->screenWidth + vars->cast_vars->x] = ceilingColor;
+        // }
     }
 
     // Render the buffer image to the screen
     mlx_put_image_to_window(vars->mlx, vars->win, buffer_img, 0, 0);
     mlx_destroy_image(vars->mlx, buffer_img);
 
-    // Free the memory allocated for the texture data
-    for (int i = 0; i < NUM_TEXTURES; i++)
-    {
-        free(textures[i].data);
-    }
+    // Add minimap
+    addMinimap(vars);
 
     vars->update_render = 0;
     return 0;
 }
+
+void addMinimap(t_vars *vars)
+{
+    // Calculate the size of the minimap
+    int minimapSize = vars->screenWidth / 4;
+    int margin = 10;
+
+    // Calculate the position and size of the minimap rectangle
+    int rectX = vars->screenWidth - minimapSize - margin;
+    int rectY = margin;
+    int rectWidth = minimapSize;
+    int rectHeight = minimapSize;
+
+    // Calculate the size of each minimap tile
+    int tileSize = minimapSize / mapWidth;
+
+    // Draw the minimap rectangle
+    draw_rectangle(vars->mlx, vars->win, rectX, rectY, rectWidth, rectHeight, 0xFFFFFF);
+
+    // Draw the minimap tiles
+    for (int i = 0; i < mapWidth; i++)
+    {
+        for (int j = 0; j < mapHeight; j++)
+        {
+            int tileX = rectX + i * tileSize;
+            int tileY = rectY + j * tileSize;
+
+            if (worldMap[i][j] > 0)
+            {
+                // Draw a filled rectangle for walls
+                draw_rectangle(vars->mlx, vars->win, tileX, tileY, tileSize, tileSize, 0xFF0000);
+            }
+        }
+    }
+
+    // Draw the player position on the minimap
+    int playerX = rectX + (int)(vars->posX * tileSize);
+    int playerY = rectY + (int)(vars->posY * tileSize);
+    draw_rectangle(vars->mlx, vars->win, playerX, playerY, tileSize, tileSize, 0x0000FF);
+
+    // Calculate the direction line position and length
+    int lineX = playerX + tileSize;
+    int lineY = playerY + tileSize;
+    int lineLength = tileSize;
+
+    // Calculate the end point of the direction line based on player direction
+    double playerDirectionX = vars->dirX * lineLength;
+    double playerDirectionY = vars->dirY * lineLength;
+    int lineEndX = lineX + playerDirectionX;
+    int lineEndY = lineY + playerDirectionY;
+
+    // Draw the direction line
+    draw_line(vars, lineX, lineY, lineEndX, lineEndY, 0xFFFF00);
+}
+
+
+
+
 
 int handle_key_press(int keycode, t_vars *vars)
 {
@@ -387,6 +448,12 @@ int handle_key_press(int keycode, t_vars *vars)
         // Close the window and quit the program
         mlx_destroy_window(vars->mlx, vars->win);
         mlx_destroy_display(vars->mlx);
+        // Free the memory allocated for the texture data
+        for (int i = 0; i < NUM_TEXTURES; i++)
+        {
+            // mlx_destroy_image(vars->mlx, (vars->textures)[i].data);
+            free((vars->textures)[i].data);
+        }
         free(vars->mlx);
         exit(0);
     }
@@ -398,7 +465,7 @@ int handle_key_press(int keycode, t_vars *vars)
         if (worldMap[(int)(vars->posX)][(int)(vars->posY + vars->dirY * moveSpeed)] == 0)
             vars->posY += vars->dirY * moveSpeed;
     }
-    if (keycode == KEY_A)
+    if (keycode == KEY_D)
     {
         // Strafe left
         if (worldMap[(int)(vars->posX - vars->dirY * moveSpeed)][(int)(vars->posY)] == 0)
@@ -414,7 +481,7 @@ int handle_key_press(int keycode, t_vars *vars)
         if (worldMap[(int)(vars->posX)][(int)(vars->posY - vars->dirY * moveSpeed)] == 0)
             vars->posY -= vars->dirY * moveSpeed;
     }
-    if (keycode == KEY_D)
+    if (keycode == KEY_A)
     {
         // Strafe right
         if (worldMap[(int)(vars->posX + vars->dirY * moveSpeed)][(int)(vars->posY)] == 0)
@@ -422,7 +489,7 @@ int handle_key_press(int keycode, t_vars *vars)
         if (worldMap[(int)(vars->posX)][(int)(vars->posY - vars->dirX * moveSpeed)] == 0)
             vars->posY -= vars->dirX * moveSpeed;
     }
-    if (keycode == KEY_LEFT)
+    if (keycode == KEY_RIGHT)
     {
         // Rotate left
         double oldDirX = vars->dirX;
@@ -432,7 +499,7 @@ int handle_key_press(int keycode, t_vars *vars)
         vars->planeX = vars->planeX * cos(rotationSpeed) - vars->planeY * sin(rotationSpeed);
         vars->planeY = oldPlaneX * sin(rotationSpeed) + vars->planeY * cos(rotationSpeed);
     }
-    if (keycode == KEY_RIGHT)
+    if (keycode == KEY_LEFT)
     {
         // Rotate right
         double oldDirX = vars->dirX;
@@ -444,6 +511,14 @@ int handle_key_press(int keycode, t_vars *vars)
     }
     vars->update_render = 1;
     return (0);
+}
+
+void cleanup_textures(t_texture *textures, int numTextures)
+{
+    for (int i = 0; i < numTextures; i++)
+    {
+        free(textures[i].data);
+    }
 }
 
 int main(void)
@@ -460,9 +535,9 @@ int main(void)
 
     XCloseDisplay(display);
     t_cast_vars cast_vars;
-    vars.posX = 22;
-    vars.posY = 12;
-    vars.dirX = -1;
+    vars.posX = 2;//22;
+    vars.posY = 2;//12;
+    vars.dirX = 1;
     vars.dirY = 0;
     vars.planeX = 0;
     vars.planeY = 0.66;
@@ -473,15 +548,25 @@ int main(void)
     vars.endian = 0;
     vars.update_render = 1;
     vars.cast_vars = &cast_vars;
-    vars.screenWidth = width - 10;
-    vars.screenHeight = height - 100;
+    vars.screenWidth = width/4;
+    vars.screenHeight = height/4;
+    // Load textures from XPM files and store them in an array
     vars.mlx = mlx_init();
     vars.win = mlx_new_window(vars.mlx, vars.screenWidth, vars.screenHeight, "Raycaster");
+    vars.textures[0] = loadTexture("xpm/redbrick.xpm", &vars);
+    vars.textures[1] = loadTexture("xpm/grass.xpm", &vars);
+    vars.textures[2] = loadTexture("xpm/eagle.xpm", &vars);
+    vars.textures[3] = loadTexture("xpm/greystone.xpm", &vars);
+    vars.textures[4] = loadTexture("xpm/mossy.xpm", &vars);
+    vars.textures[5] = loadTexture("xpm/pillar.xpm", &vars);
+    vars.textures[6] = loadTexture("xpm/purplestone.xpm", &vars);
+    vars.textures[7] = loadTexture("xpm/wood.xpm", &vars);
 
     // draw_frame(&vars);
-    performRaycasting(&vars);
+    // performRaycasting(&vars);
     mlx_hook(vars.win, 2, 1L << 0, handle_key_press, &vars);
     mlx_loop_hook(vars.mlx, performRaycasting, &vars);
     mlx_loop(vars.mlx);
+    
     return 0;
 }

@@ -10,7 +10,8 @@
 
 // #define screenWidth 1024
 // #define screenHeight 768
-
+#define mapWidth 24
+#define mapHeight 24
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
@@ -40,7 +41,7 @@ typedef struct s_mapData{
     int floor_color_int;
     int ceiling_color[3];
     int ceiling_color_int;
-    int **map;
+    char **map;
     int map_width;
     int map_height;
 } t_mapData;
@@ -107,7 +108,32 @@ void draw_rectangle(void *mlx, void *win, int x, int y, int width, int height, i
 void freeMap(t_mapData *mapData);
 void addMinimap(t_vars *vars);
 
-
+int worldMap[mapWidth][mapHeight] =
+    {
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 3, 0, 3, 0, 3, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 2, 2, 0, 2, 2, 0, 0, 0, 0, 3, 0, 3, 0, 3, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 0, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 4, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 4, 0, 0, 0, 0, 5, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 4, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 4, 0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}};
 
 void draw_line(t_vars *vars, int x1, int y1, int x2, int y2, int color)
 {
@@ -222,10 +248,10 @@ void perform_dda(t_vars *vars)
         }
 
         // break if outside map
-        if (vars->cast_vars->mapX < 0 || vars->cast_vars->mapX >= vars->mapData->map_width || vars->cast_vars->mapY < 0 || vars->cast_vars->mapY >= vars->mapData->map_height)
+        if (vars->cast_vars->mapX < 0 || vars->cast_vars->mapX >= mapWidth || vars->cast_vars->mapY < 0 || vars->cast_vars->mapY >= mapHeight)
             break;
         // Check if ray has hit a wall
-        if (vars->mapData->map[vars->cast_vars->mapX][vars->cast_vars->mapY] > 0)
+        if (worldMap[vars->cast_vars->mapX][vars->cast_vars->mapY] > 0)
             vars->cast_vars->hit = 1;
     }
 }
@@ -366,7 +392,7 @@ int performRaycasting(t_vars *vars)
         {
             // Draw the floor and ceiling pixels on the buffer image
             buffer_data[y * vars->screenWidth + vars->cast_vars->x] = floorColor;
-            buffer_data[(vars->screenHeight - y) * vars->screenWidth + vars->cast_vars->x-1] = ceilingColor;
+            buffer_data[(vars->screenHeight - y) * vars->screenWidth + vars->cast_vars->x] = ceilingColor;
         }
     }
 
@@ -385,30 +411,30 @@ int performRaycasting(t_vars *vars)
 void addMinimap(t_vars *vars)
 {
     // Calculate the size of the minimap
-    int minimapSize = vars->screenHeight / 3;
-    int margin = 1;
+    int minimapSize = vars->screenWidth / 4;
+    int margin = 10;
 
     // Calculate the position and size of the minimap rectangle
     int rectX = vars->screenWidth - minimapSize - margin;
     int rectY = vars->screenHeight - minimapSize - margin; // Updated to be at the bottom right
-    // int rectWidth = minimapSize;
-    // int rectHeight = minimapSize;
+    int rectWidth = minimapSize;
+    int rectHeight = minimapSize;
 
     // Calculate the size of each minimap tile
-    int tileSize = minimapSize / vars->mapData->map_width;
+    int tileSize = minimapSize / mapWidth;
 
     // Draw the minimap rectangle
-    // draw_rectangle(vars->mlx, vars->win, rectX, rectY, rectWidth, rectHeight, 0xFFFFFF);
+    draw_rectangle(vars->mlx, vars->win, rectX, rectY, rectWidth, rectHeight, 0xFFFFFF);
 
     // Draw the minimap tiles
-    for (int i = 0; i < vars->mapData->map_height; i++)
+    for (int i = 0; i < mapWidth; i++)
     {
-        for (int j = 0; j < vars->mapData->map_width; j++)
+        for (int j = 0; j < mapHeight; j++)
         {
             int tileX = rectX + i * tileSize;
             int tileY = rectY + j * tileSize;
 
-            if (vars->mapData->map[i][j] > 0)
+            if (worldMap[i][j] > 0)
             {
                 // Draw a filled rectangle for walls
                 draw_rectangle(vars->mlx, vars->win, tileX, tileY, tileSize, tileSize, 0xFF0000);
@@ -467,33 +493,33 @@ int handle_key_press(int keycode, t_vars *vars)
     if (keycode == KEY_W || keycode == KEY_UP)
     {
         // Move forward
-        if (vars->mapData->map[(int)(vars->posX + vars->dirX * moveSpeed)][(int)(vars->posY)] == 0)//check for walls
+        if (worldMap[(int)(vars->posX + vars->dirX * moveSpeed)][(int)(vars->posY)] == 0)//check for walls
             vars->posX += vars->dirX * moveSpeed;
-        if (vars->mapData->map[(int)(vars->posX)][(int)(vars->posY + vars->dirY * moveSpeed)] == 0)//check for walls
+        if (worldMap[(int)(vars->posX)][(int)(vars->posY + vars->dirY * moveSpeed)] == 0)//check for walls
             vars->posY += vars->dirY * moveSpeed;
     }
     if (keycode == KEY_D)
     {
         // Strafe left
-        if (vars->mapData->map[(int)(vars->posX - vars->dirY * moveSpeed)][(int)(vars->posY)] == 0)
+        if (worldMap[(int)(vars->posX - vars->dirY * moveSpeed)][(int)(vars->posY)] == 0)
             vars->posX -= vars->dirY * moveSpeed;
-        if (vars->mapData->map[(int)(vars->posX)][(int)(vars->posY + vars->dirX * moveSpeed)] == 0)
+        if (worldMap[(int)(vars->posX)][(int)(vars->posY + vars->dirX * moveSpeed)] == 0)
             vars->posY += vars->dirX * moveSpeed;
     }
     if (keycode == KEY_S || keycode == KEY_DOWN)
     {
         // Move backward
-        if (vars->mapData->map[(int)(vars->posX - vars->dirX * moveSpeed)][(int)(vars->posY)] == 0)
+        if (worldMap[(int)(vars->posX - vars->dirX * moveSpeed)][(int)(vars->posY)] == 0)
             vars->posX -= vars->dirX * moveSpeed;
-        if (vars->mapData->map[(int)(vars->posX)][(int)(vars->posY - vars->dirY * moveSpeed)] == 0)
+        if (worldMap[(int)(vars->posX)][(int)(vars->posY - vars->dirY * moveSpeed)] == 0)
             vars->posY -= vars->dirY * moveSpeed;
     }
     if (keycode == KEY_A)
     {
         // Strafe right
-        if (vars->mapData->map[(int)(vars->posX + vars->dirY * moveSpeed)][(int)(vars->posY)] == 0)
+        if (worldMap[(int)(vars->posX + vars->dirY * moveSpeed)][(int)(vars->posY)] == 0)
             vars->posX += vars->dirY * moveSpeed;
-        if (vars->mapData->map[(int)(vars->posX)][(int)(vars->posY - vars->dirX * moveSpeed)] == 0)
+        if (worldMap[(int)(vars->posX)][(int)(vars->posY - vars->dirX * moveSpeed)] == 0)
             vars->posY -= vars->dirX * moveSpeed;
     }
     if (keycode == KEY_RIGHT)
@@ -595,7 +621,7 @@ void parseMap(const char *filename, t_mapData *mapData) {
                    &mapData->floor_color[0],
                    &mapData->floor_color[1],
                    &mapData->floor_color[2]);
-            mapData->floor_color_int = convertColorToInt(mapData->floor_color);
+            mapData->floor_color_int= convertColorToInt(mapData->floor_color);
         }
 
         // Ceiling color
@@ -604,7 +630,7 @@ void parseMap(const char *filename, t_mapData *mapData) {
                    &mapData->ceiling_color[0],
                    &mapData->ceiling_color[1],
                    &mapData->ceiling_color[2]);
-            mapData->ceiling_color_int = convertColorToInt(mapData->ceiling_color);
+            mapData->ceiling_color_int= convertColorToInt(mapData->ceiling_color);
         }
 
         // Check if we have reached the map section
@@ -614,10 +640,8 @@ void parseMap(const char *filename, t_mapData *mapData) {
     }
 
     // Count the number of map rows and determine the map width
-    int max_row_width = 0;
     int map_rows = 0;
-    int map_columns = 0;
-
+    int max_row_width = 0;
     while (fgets(line, sizeof(line), file)) {
         // Remove trailing newline character
         line[strcspn(line, "\n")] = '\0';
@@ -627,27 +651,21 @@ void parseMap(const char *filename, t_mapData *mapData) {
             continue;
         }
 
-        int line_length = strlen(line);
-        if (line_length > max_row_width) {
-            max_row_width = line_length;
+        int row_length = strlen(line);
+        if (row_length > max_row_width) {
+            max_row_width = row_length;
         }
 
-        // Increment the number of map rows
         map_rows++;
 
         // Check if we have reached the end of the map
-        if (strcmp(line, "") == 0) {
+        if (line[0] == '\0') {
             break;
-        }
-
-        // Store the maximum number of columns encountered
-        if (line_length > map_columns) {
-            map_columns = line_length;
         }
     }
 
     // Allocate memory for the map array
-    mapData->map = (int **)malloc(sizeof(int *) * map_rows);
+    mapData->map = malloc(sizeof(char *) * map_rows);
 
     // Reset file pointer to the beginning of the map section
     fseek(file, 0, SEEK_SET);
@@ -664,7 +682,7 @@ void parseMap(const char *filename, t_mapData *mapData) {
     }
 
     // Parse the map rows
-    int row_index = 0;
+    int rowIndex = 0;
     while (fgets(line, sizeof(line), file)) {
         // Remove trailing newline character
         line[strcspn(line, "\n")] = '\0';
@@ -674,71 +692,34 @@ void parseMap(const char *filename, t_mapData *mapData) {
             continue;
         }
 
-        int line_length = strlen(line);
+        // Copy the map row to the map array
+        int row_length = strlen(line);
+        mapData->map[rowIndex] = malloc(row_length + 1);
+        strcpy(mapData->map[rowIndex], line);
 
-        // Allocate memory for the row of the map
-        mapData->map[row_index] = (int *)malloc(sizeof(int) * map_columns);
-
-        // Parse the row of the map
-        for (int col_index = 0; col_index < map_columns; col_index++) {
-            if (col_index < line_length) {
-                if (line[col_index] == 'N') {
-                    mapData->map[row_index][col_index] = -1;
-                }
-                else if (line[col_index] == 'S') {
-                    mapData->map[row_index][col_index] = -2;
-                }
-                else if (line[col_index] == 'E') {
-                    mapData->map[row_index][col_index] = -3;
-                }
-                else if (line[col_index] == 'F') {
-                    mapData->map[row_index][col_index] = -4;
-                } else if (line[col_index] == ' ') {
-                    mapData->map[row_index][col_index] = 1;
-                } else {
-                    mapData->map[row_index][col_index] = line[col_index] - '0';
-                }
-            } else {
-                mapData->map[row_index][col_index] = 1;
-            }
-        }
-
-        row_index++;
+        rowIndex++;
 
         // Check if we have parsed all rows of the map
-        if (row_index == map_rows) {
+        if (rowIndex == map_rows) {
             break;
         }
     }
 
-    // Set the map width and height
-    mapData->map_width = map_columns;
+    mapData->map_width = max_row_width;
     mapData->map_height = map_rows;
 
     fclose(file);
 }
 
-
-
-
 void printMap(const t_mapData *mapData) {
-    printf("North Texture: %s\n", mapData->north_texture);
-    printf("South Texture: %s\n", mapData->south_texture);
-    printf("West Texture: %s\n", mapData->west_texture);
-    printf("East Texture: %s\n", mapData->east_texture);
-    printf("Floor Color: %d,%d,%d\n", mapData->floor_color[0], mapData->floor_color[1], mapData->floor_color[2]);
-    printf("Ceiling Color: %d,%d,%d\n", mapData->ceiling_color[0], mapData->ceiling_color[1], mapData->ceiling_color[2]);
-     printf("Map height: %d  Map width: %d \n", mapData->map_height,mapData->map_width);
-    printf("Map:\n");
+    // Print the parsed map array
     for (int i = 0; i < mapData->map_height; i++) {
-        for (int j = 0; j < mapData->map_width; j++) {
-            printf("%d ", mapData->map[i][j]);
-        }
-        printf("\n");
+        printf("%s\n", mapData->map[i]);
     }
 }
 
 void freeMap(t_mapData *mapData) {
+    // Free allocated memory
     free(mapData->north_texture);
     free(mapData->south_texture);
     free(mapData->west_texture);
@@ -748,56 +729,15 @@ void freeMap(t_mapData *mapData) {
         free(mapData->map[i]);
     }
     free(mapData->map);
-
-    // Reset mapData structure
-    mapData->north_texture = NULL;
-    mapData->south_texture = NULL;
-    mapData->west_texture = NULL;
-    mapData->east_texture = NULL;
-    memset(mapData->floor_color, 0, sizeof(mapData->floor_color));
-    memset(mapData->ceiling_color, 0, sizeof(mapData->ceiling_color));
-    mapData->map = NULL;
-    mapData->map_width = 0;
-    mapData->map_height = 0;
 }
 
 void setPlayerPosition(t_vars *vars) {
-    for (int x = 0; x < vars->mapData->map_width; x++) {
-        for (int y = 0; y < vars->mapData->map_height; y++) {
-            if (vars->mapData->map[y][x] < 0) {
-                printf("\nposY=%d posX=%d\n",y,x);
+    for (int x = 0; x < mapWidth; x++) {
+        for (int y = 0; y < mapHeight; y++) {
+            if (worldMap[x][y] == -1) {
                 vars->posX = (double)x + 0.5; // Add 0.5 to center the position in the cell
-                vars->posY = (double)y -1.5;//+ 0.5; // Add 0.5 to center the position in the cell
-                
-                if(vars->mapData->map[y][x]==-1)
-                {
-                    vars->dirX = 0;
-                    vars->dirY = -1;
-                    vars->planeX = 0.66;
-                    vars->planeY = 0;
-                }
-                if(vars->mapData->map[y][x]==-2)
-                {
-                    vars->dirX = 0;
-                    vars->dirY = 1;
-                    vars->planeX = -0.66;
-                    vars->planeY = 0;
-                }
-                if(vars->mapData->map[y][x]==-3)
-                {
-                    vars->dirX = 1;
-                    vars->dirY = 0;
-                    vars->planeX = 0;
-                    vars->planeY = 0.66;
-                }
-                if(vars->mapData->map[y][x]==-4)
-                {
-                    vars->dirX = -1;
-                    vars->dirY = 0;
-                    vars->planeX = 0;
-                    vars->planeY = -0.66;
-                }
-                vars->mapData->map[y][x] = 0;
+                vars->posY = (double)y + 0.5; // Add 0.5 to center the position in the cell
+                worldMap[x][y] = 0;
                 return; // Exit the function after setting the position
             }
         }
@@ -822,32 +762,12 @@ int main(void)
 
     XCloseDisplay(display);
     t_cast_vars cast_vars;
-    // vars.posX = 1;//22;
-    // vars.posY = 2;//12;
-    
-    //NORTH
-    // vars.dirX = 0;
-    // vars.dirY = -1;
-    // vars.planeX = 0.66;
-    // vars.planeY = 0;
-    //SOUTH
+    vars.posX = 2;//22;
+    vars.posY = 2;//12;
     vars.dirX = 0;
-    vars.dirY = 1;
-    vars.planeX = -0.66;
+    vars.dirY = -1;
+    vars.planeX = 0.66;
     vars.planeY = 0;
-    
-    //EAST
-    vars.dirX = 1;
-    vars.dirY = 0;
-    vars.planeX = 0;
-    vars.planeY = 0.66;
-
-    //WEST
-    vars.dirX = -1;
-    vars.dirY = 0;
-    vars.planeX = 0;
-    vars.planeY = -0.66;
-
     vars.buffer_img = NULL;
     vars.buffer_data = NULL;
     vars.bits_per_pixel = 0;
@@ -872,7 +792,6 @@ int main(void)
     vars.textures[5] = loadTexture("xpm/pillar.xpm", &vars);
     vars.textures[6] = loadTexture("xpm/purplestone.xpm", &vars);
     vars.textures[7] = loadTexture("xpm/wood.xpm", &vars);
-    printMap(vars.mapData);
     setPlayerPosition(&vars);
     // performRaycasting(&vars);
     mlx_hook(vars.win, 2, 1L << 0, handle_key_press, &vars);
