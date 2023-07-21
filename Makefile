@@ -19,7 +19,7 @@ OBJS = $(SRCS:.c=.o)
 
 CC = gcc
 
-CFLAGS = -Wall -Wextra -Werror -g -fsanitize=address
+CFLAGS = -Wall -Wextra -Werror -g #-fsanitize=leak
 
 MLX = -L. -lft -L. -lmlx -lm -lbsd -lX11 -lXext
 

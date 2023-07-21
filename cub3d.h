@@ -6,7 +6,7 @@
 /*   By: hgoncalv <hgoncalv@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/21 11:03:36 by hgoncalv          #+#    #+#             */
-/*   Updated: 2023/07/21 11:14:06 by hgoncalv         ###   ########.fr       */
+/*   Updated: 2023/07/21 15:12:00 by hgoncalv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -210,5 +210,7 @@ void			render_screen(t_game *game);
 
 void			load_texture(t_game *game);
 void			load_img(t_game *game, int *texture, char *path, t_img *img);
+
+void free_game(t_game *game);
 
 #endif

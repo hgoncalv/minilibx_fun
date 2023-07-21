@@ -6,7 +6,7 @@
 /*   By: hgoncalv <hgoncalv@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/21 11:05:18 by hgoncalv          #+#    #+#             */
-/*   Updated: 2023/07/21 11:06:36 by hgoncalv         ###   ########.fr       */
+/*   Updated: 2023/07/21 15:12:19 by hgoncalv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 int	ft_keypress(int key, t_game *game)
 {
 	if (key == KEY_ESC)
-		exit_msg("CUB3D CLOSED, BYE!");
+		free_game(game);// exit_msg("CUB3D CLOSED, BYE!");
 	if (key == KEY_W || key == KEY_UP)
 		move_forward(game, &game->player);
 	if (key == KEY_S || key == KEY_DOWN)

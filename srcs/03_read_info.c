@@ -6,7 +6,7 @@
 /*   By: hgoncalv <hgoncalv@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/21 11:06:05 by hgoncalv          #+#    #+#             */
-/*   Updated: 2023/07/21 11:06:32 by hgoncalv         ###   ########.fr       */
+/*   Updated: 2023/07/21 15:43:54 by hgoncalv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,8 @@ void	find_info(t_game *game, char **av)
 			break ;
 		free(line);
 	}
-	game->info.line = line;
+	game->info.line = ft_strdup(line);
+	free(line);
 }
 
 int	find_and_store_info(t_game *game, char *line)
