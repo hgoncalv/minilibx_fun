@@ -1,28 +1,56 @@
+NAME = cub3D
+
+SRC_DIR = srcs
+SRCS =$(wildcard $(SRC_DIR)/*.c) 
+# srcs/cub3d.c \
+# 		srcs/get_next_line.c \
+# 		srcs/cub3d_utiles_01.c srcs/cub3d_utiles_02.c \
+# 		srcs/cub3d_keypress.c srcs/cub3d_set_tex_img.c \
+# 		srcs/cub3d_render.c srcs/cub3d_player_move.c \
+# 		srcs/cub01_init.c \
+# 		srcs/cub02_info_validation_check.c \
+# 		srcs/cub03_read_info.c srcs/cub03_parsing_resolution.c srcs/cub03_parsing_color.c \
+# 		srcs/cub04_read_map.c srcs/cub04_create_player.c \
+# 		srcs/cub05_map_validation_check.c \
+# 		srcs/cub06_ray.c \
+# 		srcs/cub06_ray_processing.c
+
+OBJS = $(SRCS:.c=.o)
+
 CC = gcc
-HEADER		=	./include/
-CFLAGS = -Wall -Wextra -Werror -g -I $(HEADER)  -fsanitize=address
-LDFLAGS = -L./minilibx-linux -lmlx_Linux -lX11 -lXext -lm   -lmlx -L/usr/include/../lib -lXext -lX11 -lm 
 
-LIBFT		=	lib/libft.a
+CFLAGS = -Wall -Wextra -Werror -g -fsanitize=address
 
-SRC_DIR = src
-SRCS := $(wildcard $(SRC_DIR)/*.c)
-TARGETS := $(patsubst $(SRC_DIR)/%.c,%,$(SRCS))
+MLX = -L. -lft -L. -lmlx -lm -lbsd -lX11 -lXext
 
-all: $(TARGETS)
+MINILIB = libmlx.a
 
-%: $(LIBFT) $(SRC_DIR)/%.c
-	$(CC) $(CFLAGS) $^ -o $@ $(LIBFT) $(LDFLAGS)
+LIBFT = libft.a
 
-$(LIBFT)	:
-				make -C ./lib
+RM = rm -f
+
+all: $(NAME)
+
+$(NAME): $(OBJS) $(LIBFT) $(MINILIB) 
+	$(CC) $(CFLAGS) -o $(NAME) $(OBJS) $(MLX)
+
+$(MINILIB):
+	$(MAKE) -C minilibx-linux
+	mv minilibx-linux/$(MINILIB) .
+
+$(LIBFT):
+	$(MAKE) -C libft
+	mv libft/$(LIBFT) .
 
 clean:
-	rm -rf $(TARGETS)
+	$(MAKE) -C minilibx-linux clean
+	$(MAKE) -C libft clean
+	$(RM) $(OBJS)
 
-fclean		:	clean
-				rm -rf $(TARGETS)
-				make fclean -C ./lib
+fclean: clean
+	$(MAKE) -C libft fclean
+	$(RM) $(NAME) $(MINILIB) $(LIBFT)
 
-.PHONY: all clean
+re: fclean all
 
+.PHONY: all clean fclean re
