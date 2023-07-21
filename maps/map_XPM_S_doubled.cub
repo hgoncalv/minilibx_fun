@@ -1,9 +1,9 @@
 R 640 480
-NO ./Texture/NO.xpm
-SO ./Texture/SO.xpm
-WE ./Texture/WE.xpm
-EA ./Texture/EA.xpm
-EA ./Texture/EA.xpm
+NO ./texture/NO.xpm
+SO ./texture/SO.xpm
+WE ./texture/WE.xpm
+EA ./texture/EA.xpm
+EA ./texture/EA.xpm
  
 F 00,153,15
 C 255,255,255

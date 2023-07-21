@@ -1,8 +1,8 @@
 r 640 480
-NO ./Texture/redbrick.xpm
-SO ./Texture/tile2.xpm
-WE ./Texture/eagle.xpm
-EA ./Texture/tile4.xpm
+NO ./texture/redbrick.xpm
+SO ./texture/tile2.xpm
+WE ./texture/eagle.xpm
+EA ./texture/tile4.xpm
 
 F 00,153,15
 C 255,255,255
