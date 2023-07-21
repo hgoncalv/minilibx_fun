@@ -106,43 +106,43 @@ void	exit_free(t_game *game, int status, char *str)
 	exit(status);
 }
 
-void free_game(t_game *game) {
+void free_game(t_game *game, int status, char *str) 
+{
     if (game == NULL) return;
 
     // Free t_info members
-    for (int i = 0; i < TEXTURE; i++) {
-        // free(game->info.tex_path[i]);
-        // free(game->info.texture[i]);
-    }
+    
 
     // Free t_map members
-    for (int i = 0; i < game->map.height_count; i++) {
-        free(game->map.map[i]);
+    if(game->map.map)
+    {
+        for (int i = 0; i < game->map.height_count; i++)
+        {
+            free(game->map.map[i]);
+        }
+        free(game->map.map);
     }
-     for (int i = 0; i < game->info.win_height; i++) {
-        free(game->buf[i]);
+    if(game->buf)
+    {
+        for (int i = 0; i < game->info.win_height; i++)
+        {
+            free(game->buf[i]);
+        }
+        free(game->buf);
     }
-    free(game->buf);
-    free(game->map.map);
-    free(game->info.line);
-    // free(game->buf);
-    // free(game->map.tmp);
-    // free(game->map.tmp);
-    // if(game->map.buff != NULL)
-        // free_tab2(game->map.buff);
-
-    // Free t_img member
-    // free(game->img.data);
-    mlx_destroy_image(game->mlx, game->img.img_ptr);
-    // Note: No need to free img.img_ptr as it's managed by the graphics library.
-
-    // Free other dynamically allocated arrays in t_game
-    // free_tab2(game->buf);
+    if(game->info.line)
+        free(game->info.line);
+    
+    
+    
+    
+    
+    if(game->img.img_ptr)
+        mlx_destroy_image(game->mlx, game->img.img_ptr);
+    
     free(game->z_buffer);
 
-    // Finally, free the t_game structure itself
-    // free(game);
-    // Destroy the MiniLibX window and display
+    
     if (game->mlx && game->win) {
         mlx_destroy_window(game->mlx, game->win);
     }
@@ -150,5 +150,10 @@ void free_game(t_game *game) {
         mlx_destroy_display(game->mlx);
         free(game->mlx);
     }
-    error_msg("Dodge THIS !!!");
+    ft_putstr(str);
+	ft_putchar('\n');
+	if(status)
+        exit (-1);
+    exit (0);
+    // free_game(game,1,"Dodge THIS !!!");
 }

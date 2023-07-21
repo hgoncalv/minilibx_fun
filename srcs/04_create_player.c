@@ -6,7 +6,7 @@
 /*   By: hgoncalv <hgoncalv@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/21 11:06:00 by hgoncalv          #+#    #+#             */
-/*   Updated: 2023/07/21 11:06:33 by hgoncalv         ###   ########.fr       */
+/*   Updated: 2023/07/21 17:01:27 by hgoncalv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ int	player_check(char c, char *player)
 void	create_player(t_game *game, int i, int j)
 {
 	if (game->player.dir)
-		error_msg("ERROR: More than one player exist");
+		free_game(game,1,"ERROR: More than one player exist");
 	game->player.dir = game->map.map[i][j];
 	game->player.dir_x = -1.0;
 	game->player.dir_y = 0.0;

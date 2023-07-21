@@ -6,7 +6,7 @@
 /*   By: hgoncalv <hgoncalv@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/21 11:04:29 by hgoncalv          #+#    #+#             */
-/*   Updated: 2023/07/21 11:13:03 by hgoncalv         ###   ########.fr       */
+/*   Updated: 2023/07/21 17:38:36 by hgoncalv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,8 +57,8 @@ int	main(int ac, char **av)
 {
 	t_game	game;
 
-	all_init(&game);
 	file_validation_check(ac, av);
+	all_init(&game);
 	find_info(&game, av);
 	info_validation_check(&game);
 	read_map(&game, game.info.line);
@@ -67,3 +67,9 @@ int	main(int ac, char **av)
 	game_set_go(&game);
 	return (EXIT_SUCCESS);
 }
+// valgrind --leak-check=full \
+//          --show-leak-kinds=all \
+//          --track-origins=yes \
+//          --verbose \
+//          --log-file=valgrind-out.txt \
+//          ./cub3D maps/huge.cub

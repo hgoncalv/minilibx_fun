@@ -6,7 +6,7 @@
 /*   By: hgoncalv <hgoncalv@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/21 11:06:22 by hgoncalv          #+#    #+#             */
-/*   Updated: 2023/07/21 11:06:30 by hgoncalv         ###   ########.fr       */
+/*   Updated: 2023/07/21 17:35:20 by hgoncalv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,10 @@ void	all_init(t_game *game)
 	}
 	game->z_buffer = NULL;
 	game->mlx = mlx_init();
+	game->win = NULL;
+	game->buf = NULL;
+	game->map.map = NULL;
+	game->img.img_ptr = NULL;
 	init_player(game);
 	init_map(game);
 }

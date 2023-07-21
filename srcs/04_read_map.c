@@ -6,7 +6,7 @@
 /*   By: hgoncalv <hgoncalv@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/21 11:05:58 by hgoncalv          #+#    #+#             */
-/*   Updated: 2023/07/21 11:06:33 by hgoncalv         ###   ########.fr       */
+/*   Updated: 2023/07/21 17:01:27 by hgoncalv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ void	read_map(t_game *game, char *line)
 		if (line[0] == '\0' || empty_line_check(line) == 1)
 		{
 			free(line);
-			error_msg("ERROR: Empty line in the map");
+			free_game(game,1,"ERROR: Empty line in the map");
 		}
 		game->map.tmp = tmp_map_update(game->map.tmp, line);
 		free(line);
@@ -42,7 +42,7 @@ void	find_map_width_and_height(t_game *game)
 	len = 0;
 	game->map.buff = ft_split(game->map.tmp, '\n');
 	if (!(game->map.buff))
-		error_msg("ERROR: Map split failed");
+		free_game(game,1,"ERROR: Map split failed");
 	free(game->map.tmp);
 	while (game->map.buff[i])
 	{
@@ -64,13 +64,13 @@ void	allocate_map(t_game *game)
 	find_map_width_and_height(game);
 	game->map.map = malloc(sizeof(char *) * (game->map.height_count + 1));
 	if (!(game->map.map))
-		error_msg("ERROR: Malloc failed");
+		free_game(game,1,"ERROR: Malloc failed");
 	game->map.map[game->map.height_count] = NULL;
 	while (game->map.buff[i])
 	{
 		game->map.map[i] = malloc(sizeof(char) * (game->map.width_count + 1));
 		if (!(game->map.map[i]))
-			error_msg("ERROR: Malloc failed");
+			free_game(game,1,"ERROR: Malloc failed");
 		j = 0;
 		while (j < game->map.width_count)
 		{
@@ -95,7 +95,7 @@ void	complet_map(t_game *game)
 		{
 			if (!map_component_check(&game->map.buff[i][j])
 											&& game->map.buff[i][j] != '\0')
-				error_msg("ERROR: Invalide component in the map");
+				free_game(game,1,"ERROR: Invalide component in the map");
 			game->map.map[i][j] = game->map.buff[i][j];
 			if (player_check(game->map.map[i][j], "NSEW") == 1)
 			{

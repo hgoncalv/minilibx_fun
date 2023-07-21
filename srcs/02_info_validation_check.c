@@ -6,7 +6,7 @@
 /*   By: hgoncalv <hgoncalv@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/21 11:06:18 by hgoncalv          #+#    #+#             */
-/*   Updated: 2023/07/21 11:06:30 by hgoncalv         ###   ########.fr       */
+/*   Updated: 2023/07/21 17:03:14 by hgoncalv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,14 +23,14 @@ void	file_validation_check(int ac, char **av)
 void	info_validation_check(t_game *game)
 {
 	if (game->info.mark == -1)
-		error_msg("ERROR: Info element(s) Missing or Info not well aligned");
+		free_game(game,1,"ERROR: Info element(s) Missing or Info not well aligned");
 	if (!game->info.win_width || !game->info.win_height)
-		error_msg("ERROR: Resolution Info missing");
+		free_game(game,1,"ERROR: Resolution Info missing");
 	if (game->info.floor_color == -1 || game->info.ceiling_color == -1)
-		error_msg("ERROR: Color Info missing");
+		free_game(game,1,"ERROR: Color Info missing");
 	if (!game->info.tex_path[TEX_NORTH] || !game->info.tex_path[TEX_SOUTH]
 		|| !game->info.tex_path[TEX_WEST] || !game->info.tex_path[TEX_EAST])
-		error_msg("ERROR: Texture Info missing");
+		free_game(game,1,"ERROR: Texture Info missing");
 }
 
 void	linux_resolution_max_min_check(t_game *game)

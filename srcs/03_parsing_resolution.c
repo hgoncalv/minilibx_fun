@@ -6,7 +6,7 @@
 /*   By: hgoncalv <hgoncalv@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/21 11:06:09 by hgoncalv          #+#    #+#             */
-/*   Updated: 2023/07/21 11:06:31 by hgoncalv         ###   ########.fr       */
+/*   Updated: 2023/07/21 17:01:27 by hgoncalv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,14 +18,14 @@ int	store_resolution(t_game *game, char *line)
 
 	i = 0;
 	if (game->info.win_width || game->info.win_height)
-		error_msg("ERROR: Resolution info doubled");
+		free_game(game,1,"ERROR: Resolution info doubled");
 	find_resolution(game, line, &i);
 	if (!game->info.win_width || !game->info.win_height)
-		error_msg("ERROR: One of resolutions is invalid");
+		free_game(game,1,"ERROR: One of resolutions is invalid");
 	while (ft_space(line[i]))
 		i++;
 	if (line[i] != '\0')
-		error_msg("ERROR: Resolution info not corrected");
+		free_game(game,1,"ERROR: Resolution info not corrected");
 	return (RESOLUTION);
 }
 
@@ -46,5 +46,5 @@ void	find_resolution(t_game *game, char *line, int *i)
 				+ line[(*i)++] - 48;
 	}
 	else
-		error_msg("ERROR: Resolution info not corrected");
+		free_game(game,1,"ERROR: Resolution info not corrected");
 }
