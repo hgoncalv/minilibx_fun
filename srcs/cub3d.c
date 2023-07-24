@@ -67,9 +67,3 @@ int	main(int ac, char **av)
 	game_set_go(&game);
 	return (EXIT_SUCCESS);
 }
-// valgrind --leak-check=full \
-//          --show-leak-kinds=all \
-//          --track-origins=yes \
-//          --verbose \
-//          --log-file=valgrind-out.txt \
-//          ./cub3D maps/huge.cub

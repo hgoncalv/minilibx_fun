@@ -160,8 +160,8 @@ int				store_texture(int texture, t_game *game, char *line);
 int				store_resolution(t_game *game, char *line);
 void			find_resolution(t_game *game, char *line, int *i);
 int				store_color(int info, t_game *game, char *line);
-void			check_color_line(t_game *game, char *line, int *info, int *i);
-void			find_color(char *line, int *i, char **rgb, int *color);
+char			*check_color_line(t_game *game, char *line, int *info, int *i);
+char			*find_color(char *line, int *i, char **rgb, int *color);
 
 void			read_map(t_game *game, char *line);
 void			find_map_width_and_height(t_game *game);

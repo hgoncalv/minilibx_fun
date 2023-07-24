@@ -18,16 +18,16 @@ void	load_texture(t_game *game)
 
 	load_img(game, game->info.texture[TEX_NORTH],
 		game->info.tex_path[TEX_NORTH], &img);
-	free(game->info.tex_path[TEX_NORTH]);
+	// free(game->info.tex_path[TEX_NORTH]);
 	load_img(game, game->info.texture[TEX_EAST],
 		game->info.tex_path[TEX_EAST], &img);
-	free(game->info.tex_path[TEX_EAST]);
+	// free(game->info.tex_path[TEX_EAST]);
 	load_img(game, game->info.texture[TEX_WEST],
 		game->info.tex_path[TEX_WEST], &img);
-	free(game->info.tex_path[TEX_WEST]);
+	// free(game->info.tex_path[TEX_WEST]);
 	load_img(game, game->info.texture[TEX_SOUTH],
 		game->info.tex_path[TEX_SOUTH], &img);
-	free(game->info.tex_path[TEX_SOUTH]);
+	// free(game->info.tex_path[TEX_SOUTH]);
 }
 
 void	load_img(t_game *game, int *texture, char *path, t_img *img)

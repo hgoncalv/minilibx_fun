@@ -76,7 +76,7 @@ int	store_texture(int texture, t_game *game, char *line)
 		free_game(game,1,"ERROR: Texture path not exist");
 	game->info.tex_path[texture] = ft_strdup(&line[i]);
 	if (ft_strstr_cub(game->info.tex_path[texture], ".xpm") != 1)
-		free_game(game,1,"ERROR: .xpm not corrected");
+		free_game(game,1,"ERROR: .xpm not correct");
 	fd_tex = open(game->info.tex_path[texture], O_RDONLY);
 	if (fd_tex < 0)
 		free_game(game,1,"ERROR: texture .xpm file doesn't exist");

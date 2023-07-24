@@ -111,23 +111,30 @@ void free_game(t_game *game, int status, char *str)
     if (game == NULL) return;
 
     // Free t_info members
-    
-
-    // Free t_map members
-    if(game->map.map)
+    int i = 0;
+    while (i < 4)
     {
-        for (int i = 0; i < game->map.height_count; i++)
-        {
-            free(game->map.map[i]);
-        }
+        if(game->info.tex_path[i] != NULL)
+            free(game->info.tex_path[i]);
+        i++;
+    }
+    // Free t_map members
+    if (game->map.tmp)
+        free(game->map.tmp);
+    if (game->map.buff)
+        free_tab2(game->map.buff);
+    i = 0;
+    if (game->map.map)
+    {
+        while (i < game->map.height_count)
+            free(game->map.map[i++]);
         free(game->map.map);
     }
+    i = 0;
     if(game->buf)
     {
-        for (int i = 0; i < game->info.win_height; i++)
-        {
-            free(game->buf[i]);
-        }
+        while (i < game->info.win_height)
+            free(game->buf[i++]);
         free(game->buf);
     }
     if(game->info.line)
@@ -139,8 +146,8 @@ void free_game(t_game *game, int status, char *str)
     
     if(game->img.img_ptr)
         mlx_destroy_image(game->mlx, game->img.img_ptr);
-    
-    free(game->z_buffer);
+    if(game->z_buffer)
+        free(game->z_buffer);
 
     
     if (game->mlx && game->win) {

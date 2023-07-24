@@ -17,15 +17,27 @@ int	store_color(int info, t_game *game, char *line)
 	int		i;
 	int		color;
 	char	**rgb;
-
+	char	*ret_str;
 	i = 0;
 	color = 0;
-	check_color_line(game, line, &info, &i);
+	ret_str = 0;
+	ret_str = check_color_line(game, line, &info, &i);
+	if(ret_str)
+	{
+		free(line);
+		free_game(game , 1, ret_str);
+	}
 	rgb = ft_split(&line[i], ',');
 	if (!rgb)
-		error_msg("ERROR: RGB Split error");
+		free_game(game , 1, "ERROR: RGB Split error");
 	i = 0;
-	find_color(line, &i, rgb, &color);
+	ret_str = find_color(line, &i, rgb, &color);
+	if(ret_str)
+	{
+		free_tab2(rgb);
+		free(line);
+		free_game(game , 1, ret_str);
+	}
 	if (info == FLOOR)
 		game->info.floor_color = color;
 	else if (info == CEILING)
@@ -34,18 +46,19 @@ int	store_color(int info, t_game *game, char *line)
 	return (info);
 }
 
-void	check_color_line(t_game *game, char *line, int *info, int *i)
+char	*check_color_line(t_game *game, char *line, int *info, int *i)
 {
 	if ((game->info.mark == *info && game->info.floor_color != -1)
 		|| (game->info.mark == *info && game->info.ceiling_color != -1))
-		error_msg("ERROR: Color info doubled");
+		return("Color info doubled");
 	while (ft_uppercase(line[*i]))
 		(*i)++;
 	while (ft_space(line[*i]))
 		(*i)++;
+	return (0);
 }
 
-void	find_color(char *line, int *i, char **rgb, int *color)
+char	*find_color(char *line, int *i, char **rgb, int *color)
 {
 	int	tmp;
 	int	j;
@@ -54,19 +67,23 @@ void	find_color(char *line, int *i, char **rgb, int *color)
 	while (*i < 3)
 	{
 		if (!rgb[*i] || !ft_only_digit(rgb[*i]))
-			error_msg("ERROR: RGB info not corrected");
+		{
+			printf("aqui");
+			return("RGB info not correct");
+		}
 		tmp = ft_atoi(rgb[*i]);
 		if (tmp > 255 || tmp < 0)
-			error_msg("ERROR: RGB range invalid");
+			return("RGB range invalid");
 		*color = *color * 256 + tmp;
 		(*i)++;
 	}
 	while (line[j] != '\0')
 	{
 		if (line[j] == ',' && line[j + 1] == '\0')
-			error_msg("ERROR: Unexpected comma exist");
+			return("Unexpected comma exist");
 		j++;
 	}
 	if (rgb[3])
-		error_msg("ERROR: Too many color for RGB");
+		return("Too many color for RGB");
+	return (0);
 }
