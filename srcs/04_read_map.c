@@ -15,7 +15,7 @@
 void	read_map(t_game *game, char *line)
 {
 	game->map.tmp = ft_strjoin(line, "\n");
-	while ((get_next_line(game->fd, &line) > 0))
+	while ((get_next_line(game->fd, &line, game) > 0))
 	{
 		if (line[0] == '\0' || empty_line_check(line) == 1)
 		{

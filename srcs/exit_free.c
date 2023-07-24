@@ -95,7 +95,8 @@ void	exit_free(t_game *game, int status, char *str)
 		free_tab2(game->map.map);
 		game->map.map = NULL;
 	}
-	// if (game->img.path)
+    
+    // if (game->img.path)
 	// {
 	// 	while (++i < 4)
 	// 		if (game->img.path[i])
@@ -140,7 +141,12 @@ void free_game(t_game *game, int status, char *str)
     if(game->info.line)
         free(game->info.line);
     
-    
+    printf ("\n o desgracado = %s \n", game->leftover_str);
+    if(game->leftover_str != NULL)
+    {    
+        free(game->leftover_str);
+	
+    }
     
     
     

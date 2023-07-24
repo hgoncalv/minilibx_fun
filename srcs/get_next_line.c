@@ -85,7 +85,7 @@ char	*ft_read_line(char *str, int fd, int *ret)
 	return (str);
 }
 
-int	get_next_line(int fd, char **line)
+int	get_next_line(int fd, char **line, t_game *game)
 {
 	int				ret;
 	static char		*str;
@@ -97,13 +97,14 @@ int	get_next_line(int fd, char **line)
 	if (ret < 0)
 		return (-1);
 	value = ft_line(str, line, ret);
-	if (value == 1)
-		str = ft_rest(str);
 	if (value == 0)
 	{
 		free(str);
 		str = NULL;
 		return (0);
 	}
+	if (value == 1)
+		str = ft_rest(str);
+	game->leftover_str=str;
 	return (1);
 }

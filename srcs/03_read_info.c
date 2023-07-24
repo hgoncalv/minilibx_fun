@@ -19,7 +19,7 @@ void	find_info(t_game *game, char **av)
 	game->fd = open(av[1], O_RDONLY);
 	if (game->fd < 0)
 		free_game(game,1,"ERROR: file not exist");
-	while ((get_next_line(game->fd, &line)) > 0)
+	while ((get_next_line(game->fd, &line, game)) > 0)
 	{
 		if ((line[0] == '\0' || empty_line_check(line) == 1)
 			&& game->info.mark != MAP)

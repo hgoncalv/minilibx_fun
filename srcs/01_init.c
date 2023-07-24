@@ -17,6 +17,7 @@ void	all_init(t_game *game)
 	int	i;
 
 	i = 0;
+	game->leftover_str = NULL;
 	game->info.line = NULL;
 	game->info.mark = 0;
 	game->info.win_width = 0;
