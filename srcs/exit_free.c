@@ -120,12 +120,12 @@ void free_game(t_game *game, int status, char *str)
         i++;
     }
     // Free t_map members
-    if (game->map.tmp)
+    if (game->map.tmp != NULL)
         free(game->map.tmp);
-    if (game->map.buff)
+    if (game->map.buff != NULL)
         free_tab2(game->map.buff);
     i = 0;
-    if (game->map.map)
+    if (game->map.map != NULL)
     {
         while (i < game->map.height_count)
             free(game->map.map[i++]);

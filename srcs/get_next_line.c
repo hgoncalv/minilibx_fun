@@ -101,6 +101,7 @@ int	get_next_line(int fd, char **line, t_game *game)
 	{
 		free(str);
 		str = NULL;
+		game->leftover_str=str;
 		return (0);
 	}
 	if (value == 1)

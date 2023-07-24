@@ -44,6 +44,7 @@ void	find_map_width_and_height(t_game *game)
 	if (!(game->map.buff))
 		free_game(game,1,"ERROR: Map split failed");
 	free(game->map.tmp);
+	game->map.tmp = NULL;
 	while (game->map.buff[i])
 	{
 		len = ft_strlen(game->map.buff[i]);
@@ -107,6 +108,7 @@ void	complet_map(t_game *game)
 		i++;
 	}
 	free_tab2(game->map.buff);
+	game->map.buff = NULL;
 }
 
 char	*tmp_map_update(char *first_map_line, char *line)
