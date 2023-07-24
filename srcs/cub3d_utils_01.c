@@ -14,13 +14,15 @@
 
 int	ft_exit_key(t_game *game)
 {
-	(void)game;
+	free_game(game, 0, "Cub3D exited");
 	exit_msg("Cub3D exited");
 	exit(0);
 }
 
 void	error_msg(char *str)
 {
+	ft_putstr("ERROR:");
+	ft_putchar('\n');
 	ft_putstr(str);
 	ft_putchar('\n');
 	exit(-1);
