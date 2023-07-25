@@ -6,7 +6,7 @@
 /*   By: hgoncalv <hgoncalv@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/21 11:05:18 by hgoncalv          #+#    #+#             */
-/*   Updated: 2023/07/21 17:07:48 by hgoncalv         ###   ########.fr       */
+/*   Updated: 2023/07/25 11:30:41 by hgoncalv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 int	ft_keypress(int key, t_game *game)
 {
 	if (key == KEY_ESC)
-		free_game(game, 0, "CUB3D CLOSED, BYE!");// exit_msg("CUB3D CLOSED, BYE!");
+		free_game(game, 0, "CUB3D CLOSED, BYE!");
 	if (key == KEY_W || key == KEY_UP)
 		move_forward(game, &game->player);
 	if (key == KEY_S || key == KEY_DOWN)
@@ -39,10 +39,10 @@ void	rotate_right(t_player *player)
 
 	old_dir_x = player->dir_x;
 	old_plane_x = player->plane_x;
-	player->dir_x = player->dir_x * cos(-player->rotation_speed)
-		- player->dir_y * sin(-player->rotation_speed);
-	player->dir_y = old_dir_x * sin(-player->rotation_speed)
-		+ player->dir_y * cos(-player->rotation_speed);
+	player->dir_x = player->dir_x * cos(-player->rotation_speed) - player->dir_y
+		* sin(-player->rotation_speed);
+	player->dir_y = old_dir_x * sin(-player->rotation_speed) + player->dir_y
+		* cos(-player->rotation_speed);
 	player->plane_x = player->plane_x * cos(-player->rotation_speed)
 		- player->plane_y * sin(-player->rotation_speed);
 	player->plane_y = old_plane_x * sin(-player->rotation_speed)
@@ -56,10 +56,10 @@ void	rotate_left(t_player *player)
 
 	old_dir_x = player->dir_x;
 	old_plane_x = player->plane_x;
-	player->dir_x = player->dir_x * cos(player->rotation_speed)
-		- player->dir_y * sin(player->rotation_speed);
-	player->dir_y = old_dir_x * sin(player->rotation_speed)
-		+ player->dir_y * cos(player->rotation_speed);
+	player->dir_x = player->dir_x * cos(player->rotation_speed) - player->dir_y
+		* sin(player->rotation_speed);
+	player->dir_y = old_dir_x * sin(player->rotation_speed) + player->dir_y
+		* cos(player->rotation_speed);
 	player->plane_x = player->plane_x * cos(player->rotation_speed)
 		- player->plane_y * sin(player->rotation_speed);
 	player->plane_y = old_plane_x * sin(player->rotation_speed)

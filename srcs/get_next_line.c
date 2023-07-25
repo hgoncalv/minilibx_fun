@@ -6,7 +6,7 @@
 /*   By: hgoncalv <hgoncalv@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/21 11:04:22 by hgoncalv          #+#    #+#             */
-/*   Updated: 2023/07/21 15:36:31 by hgoncalv         ###   ########.fr       */
+/*   Updated: 2023/07/25 11:31:04 by hgoncalv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 int	ft_line(char *str, char **line, int ret)
 {
-	int		i;
+	int	i;
 
 	i = 0;
 	if (str != NULL)
@@ -87,9 +87,9 @@ char	*ft_read_line(char *str, int fd, int *ret)
 
 int	get_next_line(int fd, char **line, t_game *game)
 {
-	int				ret;
-	static char		*str;
-	int				value;
+	int			ret;
+	static char	*str;
+	int			value;
 
 	if (fd < 0 || line == NULL || BUFFER_SIZE == 0)
 		return (-1);
@@ -101,11 +101,11 @@ int	get_next_line(int fd, char **line, t_game *game)
 	{
 		free(str);
 		str = NULL;
-		game->leftover_str=str;
+		game->leftover_str = str;
 		return (0);
 	}
 	if (value == 1)
 		str = ft_rest(str);
-	game->leftover_str=str;
+	game->leftover_str = str;
 	return (1);
 }

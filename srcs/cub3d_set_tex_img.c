@@ -6,7 +6,7 @@
 /*   By: hgoncalv <hgoncalv@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/21 11:04:59 by hgoncalv          #+#    #+#             */
-/*   Updated: 2023/07/21 11:10:20 by hgoncalv         ###   ########.fr       */
+/*   Updated: 2023/07/25 11:55:10 by hgoncalv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,16 +18,12 @@ void	load_texture(t_game *game)
 
 	load_img(game, game->info.texture[TEX_NORTH],
 		game->info.tex_path[TEX_NORTH], &img);
-	// free(game->info.tex_path[TEX_NORTH]);
-	load_img(game, game->info.texture[TEX_EAST],
-		game->info.tex_path[TEX_EAST], &img);
-	// free(game->info.tex_path[TEX_EAST]);
-	load_img(game, game->info.texture[TEX_WEST],
-		game->info.tex_path[TEX_WEST], &img);
-	// free(game->info.tex_path[TEX_WEST]);
+	load_img(game, game->info.texture[TEX_EAST], game->info.tex_path[TEX_EAST],
+		&img);
+	load_img(game, game->info.texture[TEX_WEST], game->info.tex_path[TEX_WEST],
+		&img);
 	load_img(game, game->info.texture[TEX_SOUTH],
 		game->info.tex_path[TEX_SOUTH], &img);
-	// free(game->info.tex_path[TEX_SOUTH]);
 }
 
 void	load_img(t_game *game, int *texture, char *path, t_img *img)
@@ -39,8 +35,8 @@ void	load_img(t_game *game, int *texture, char *path, t_img *img)
 			&img->height);
 	if (img->width != 64)
 		exit_msg("\nXPM file must be 64x64");
-	img->data = (int *)mlx_get_data_addr(img->img_ptr, &img->bpp,
-			&img->size_l, &img->endian);
+	img->data = (int *)mlx_get_data_addr(img->img_ptr, &img->bpp, &img->size_l,
+			&img->endian);
 	y = 0;
 	while (y < img->height)
 	{

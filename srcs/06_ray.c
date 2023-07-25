@@ -6,7 +6,7 @@
 /*   By: hgoncalv <hgoncalv@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/21 11:05:21 by hgoncalv          #+#    #+#             */
-/*   Updated: 2023/07/21 11:06:36 by hgoncalv         ###   ########.fr       */
+/*   Updated: 2023/07/25 11:54:56 by hgoncalv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,23 +70,23 @@ void	set_dda(t_game *game)
 void	calculate_dist_to_wall(t_game *game)
 {
 	if (game->ray.side == TEX_WEST || game->ray.side == TEX_EAST)
-		game->ray.perp_walldist = (game->ray.map_x - game->player.x
-				+ (1 - game->ray.step_x) / 2) / game->ray.dir_x;
+		game->ray.perp_walldist = (game->ray.map_x - game->player.x + (1
+					- game->ray.step_x) / 2) / game->ray.dir_x;
 	else
-		game->ray.perp_walldist = (game->ray.map_y - game->player.y
-				+ (1 - game->ray.step_y) / 2) / game->ray.dir_y;
+		game->ray.perp_walldist = (game->ray.map_y - game->player.y + (1
+					- game->ray.step_y) / 2) / game->ray.dir_y;
 }
 
 void	draw_ray_per_line(t_game *game)
 {
 	game->ray.line_height = (int)(game->info.win_height
 			/ game->ray.perp_walldist);
-	game->ray.draw_start = (-game->ray.line_height / 2)
-		+ (game->info.win_height / 2);
+	game->ray.draw_start = (-game->ray.line_height / 2) + (game->info.win_height
+			/ 2);
 	if (game->ray.draw_start < 0)
 		game->ray.draw_start = 0;
-	game->ray.draw_end = (game->ray.line_height / 2)
-		+ (game->info.win_height / 2);
+	game->ray.draw_end = (game->ray.line_height / 2) + (game->info.win_height
+			/ 2);
 	if (game->ray.draw_end >= game->info.win_height)
 		game->ray.draw_end = game->info.win_height - 1;
 	if (game->ray.side == TEX_WEST || game->ray.side == TEX_EAST)
@@ -114,8 +114,8 @@ void	ray_wall_draw(t_game *game, int x)
 	{
 		game->ray.tex_y = (int)game->ray.tex_pos & (TEX_HEIGHT - 1);
 		game->ray.tex_pos += game->ray.step;
-		color = game->info.texture[game->ray.side]
-		[TEX_HEIGHT * game->ray.tex_y + game->ray.tex_x];
+		color = game->info.texture[game->ray.side][TEX_HEIGHT * game->ray.tex_y
+			+ game->ray.tex_x];
 		if (game->ray.side == TEX_SOUTH || game->ray.side == TEX_NORTH)
 			color = (color >> 1) & 8355711;
 		game->buf[y][x] = color;

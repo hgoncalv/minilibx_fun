@@ -6,13 +6,13 @@
 /*   By: hgoncalv <hgoncalv@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/21 11:04:29 by hgoncalv          #+#    #+#             */
-/*   Updated: 2023/07/21 17:38:36 by hgoncalv         ###   ########.fr       */
+/*   Updated: 2023/07/25 12:11:01 by hgoncalv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../cub3d.h"
 
-int	handle_mouse(t_game	*game)
+int	handle_mouse(t_game *game)
 {
 	static int	prev_x = 0;
 	int			x;
@@ -57,6 +57,7 @@ int	main(int ac, char **av)
 {
 	t_game	game;
 
+	game.to_render = 1;
 	file_validation_check(ac, av);
 	all_init(&game);
 	find_info(&game, av);

@@ -6,7 +6,7 @@
 /*   By: hgoncalv <hgoncalv@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/21 11:06:22 by hgoncalv          #+#    #+#             */
-/*   Updated: 2023/07/21 17:35:20 by hgoncalv         ###   ########.fr       */
+/*   Updated: 2023/07/25 11:54:11 by hgoncalv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,6 +69,6 @@ void	game_init(t_game *game)
 	linux_resolution_max_min_check(game);
 	game->img.img_ptr = mlx_new_image(game->mlx, game->info.win_width,
 			game->info.win_height);
-	game->img.data = (int *)mlx_get_data_addr(game->img.img_ptr,
-			&game->img.bpp, &game->img.size_l, &game->img.endian);
+	game->img.data = (int *)mlx_get_data_addr(game->img.img_ptr, &game->img.bpp,
+			&game->img.size_l, &game->img.endian);
 }

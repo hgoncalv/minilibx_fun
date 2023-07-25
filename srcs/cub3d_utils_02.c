@@ -6,7 +6,7 @@
 /*   By: hgoncalv <hgoncalv@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/21 11:04:51 by hgoncalv          #+#    #+#             */
-/*   Updated: 2023/07/21 17:01:27 by hgoncalv         ###   ########.fr       */
+/*   Updated: 2023/07/25 12:14:13 by hgoncalv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,13 +46,13 @@ void	malloc_buffer(t_game *game)
 
 	game->buf = ft_calloc(game->info.win_height + 1, sizeof(int **));
 	if (!(game->buf))
-		free_game(game,1,"ERROR: Buffer malloc failed");
+		free_game(game, 1, "Buffer malloc failed");
 	i = 0;
 	while (i < game->info.win_height)
 	{
 		game->buf[i] = ft_calloc(game->info.win_width + 1, sizeof(int *));
 		if (!(game->buf[i]))
-			free_game(game,1,"ERROR: Buffer malloc failed");
+			free_game(game, 1, "Buffer malloc failed");
 		i++;
 	}
 }
@@ -61,5 +61,5 @@ void	malloc_z_buffer(t_game *game)
 {
 	game->z_buffer = (double *)ft_calloc(game->info.win_width, sizeof(double));
 	if (!(game->z_buffer))
-		free_game(game,1,"ERROR: z_buffer malloc failed");
+		free_game(game, 1, "z_buffer malloc failed");
 }
